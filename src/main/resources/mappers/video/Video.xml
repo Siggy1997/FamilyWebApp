@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="Video">
+<select id="videoList" parameterType="map" resultType="map">
+    SELECT 
+    	id
+    	, trip_id
+    	, member_id
+    	, file_path
+    	, thumb_path
+    	, file_name
+    	, duration_sec
+    	, width, height
+    FROM 
+    	videos
+    WHERE 
+    	trip_id = #{trip_id}
+    ORDER BY 
+    	id ASC
+</select>    
+    	
+</mapper>

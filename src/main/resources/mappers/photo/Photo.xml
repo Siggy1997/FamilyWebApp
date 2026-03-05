@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="Photo">
+
+	<select id="photoList" parameterType="map" resultType="map">
+		SELECT 
+			id
+			, trip_id
+			, file_path
+			, taken_at
+			, width
+			, height
+			, size_bytes
+		FROM 
+			photos
+		WHERE 
+			trip_id = #{trip_id}
+		ORDER BY 
+			taken_at ASC, id ASC
+	</select>
+
+</mapper>

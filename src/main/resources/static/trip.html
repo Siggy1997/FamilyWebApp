@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#f5efe6">
+<title>memories.</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=Noto+Sans+KR:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/common.css">
+<link rel="stylesheet" href="/css/trip.css">
+</head>
+<body>
+<div id="toast"></div>
+
+<!-- ── 업로드 진행 시트 ── -->
+<div class="upload-sheet" id="uploadSheet">
+  <div class="upload-sheet-inner">
+    <div class="upload-sheet-header">
+      <div class="upload-sheet-title">업로드 중</div>
+      <div class="upload-sheet-count" id="uploadCount">0 / 0</div>
+    </div>
+    <div class="upload-progress-bar">
+      <div class="upload-progress-fill" id="uploadFill"></div>
+    </div>
+    <div class="upload-file-list" id="uploadFileList"></div>
+  </div>
+</div>
+
+<!-- 숨겨진 파일 인풋 -->
+<input type="file" id="fileInput" accept="image/*" multiple style="display:none" onchange="handleFiles(this.files)">
+
+<!-- ── 업로드 진행 시트 ── -->
+<div class="upload-sheet" id="uploadSheet">
+  <div class="upload-sheet-inner">
+    <div class="upload-sheet-header">
+      <div class="upload-sheet-title">업로드 중</div>
+      <div class="upload-sheet-count" id="uploadCount">0 / 0</div>
+    </div>
+    <div class="upload-progress-bar">
+      <div class="upload-progress-fill" id="uploadFill"></div>
+    </div>
+    <div class="upload-file-list" id="uploadFileList"></div>
+  </div>
+</div>
+
+<div class="app" id="app">
+
+  <!-- ── 상단 Nav ── -->
+  <div class="detail-nav">
+    <div class="detail-nav-inner">
+      <button class="btn-back" onclick="goBack()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <polyline points="15 18 9 12 15 6"/>
+        </svg>
+        뒤로
+      </button>
+      <div class="nav-title" id="navTitle"></div>
+      <div class="nav-actions" id="navActions">
+        <!-- 선택 모드: 다운로드 + 취소 -->
+        <button class="nav-icon-btn nav-icon-btn--download" id="btnDownload" onclick="downloadSelected()" style="display:none">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+            <polyline points="7 10 12 15 17 10"/>
+            <line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+        </button>
+        <button class="nav-text-btn" id="btnSelectCancel" onclick="cancelSelect()" style="display:none">취소</button>
+        <button class="btn-more" id="btnMore">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/>
+          </svg>
+        </button>
+      </div>
+      <input type="file" id="fileInput" accept="image/*" multiple style="display:none" onchange="handleFiles(this.files)">
+    </div>
+  </div>
+
+  <!-- ── 스크롤 영역 ── -->
+  <div class="scroll-wrap" id="scrollWrap">
+
+    <!-- 히어로 배너 -->
+    <div class="trip-hero" id="tripHero"></div>
+
+    <!-- 기본 정보 -->
+    <div class="trip-info-block" id="tripInfoBlock"></div>
+
+    <!-- ── 탭 바 ── -->
+    <div class="tab-bar" id="tabBar">
+      <button class="tab-btn active" onclick="switchTab('highlight', this)">하이라이트</button>
+      <button class="tab-btn" onclick="switchTab('gallery', this)">사진</button>
+      <button class="tab-btn" onclick="switchTab('videos', this)">동영상</button>
+      <button class="tab-btn" onclick="switchTab('schedule', this)">일정</button>
+      <div class="tab-indicator" id="tabIndicator"></div>
+    </div>
+
+    <!-- ── 탭 콘텐츠 ── -->
+    <div class="tab-content">
+      <div class="tab-panel active" id="sectionHighlight"></div>
+      <div class="tab-panel" id="sectionGallery"></div>
+      <div class="tab-panel" id="sectionVideos"></div>
+      <div class="tab-panel" id="sectionSchedule"></div>
+    </div>
+
+    <div class="page-end"></div>
+  </div>
+
+</div>
+
+<script src="/js/api.js"></script>
+<script src="/js/common.js"></script>
+<script src="/js/trip.js"></script>
+</body>
+</html>
