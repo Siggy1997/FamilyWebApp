@@ -451,3 +451,41 @@
   border-top-color: var(--accent);
   animation: spin 0.65s linear infinite;
 }
+
+/* ══ Lazy Load 이미지 ══ */
+.img-wrap {
+  position: relative; width: 100%; height: 100%;
+}
+.img-skeleton {
+  position: absolute; inset: 0;
+  background: linear-gradient(90deg, var(--warm) 25%, var(--paper) 50%, var(--warm) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite;
+}
+.gallery-item img {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%; object-fit: cover;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+  display: block;
+}
+.gallery-item img.loaded {
+  opacity: 1;
+}
+/* 로드 완료되면 스켈레톤 숨김 */
+.gallery-item img.loaded ~ .img-skeleton,
+.gallery-item:has(img.loaded) .img-skeleton {
+  display: none;
+}
+
+/* 에러 */
+.gallery-item.img-error .img-skeleton { display: none; }
+.gallery-item.img-error::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: var(--warm);
+  display: flex; align-items: center; justify-content: center;
+}
+
+/* 센티넬 */
+.gallery-sentinel { height: 1px; }

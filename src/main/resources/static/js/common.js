@@ -100,3 +100,77 @@ const Router = (() => {
 
   return { push, pop };
 })();
+
+/* ════════════════════════════════════════
+   common.js 에 아래 코드를 추가하세요
+   (기존 showToast, Router 등 아래에 붙여넣기)
+════════════════════════════════════════ */
+
+/* ══════════════════════════════
+   롱프레스 유틸리티
+   · 500 ms 이상 누르면 onLongPress 콜백 실행
+   · 8 px 이상 움직이면 스크롤로 판단해 취소
+   · 사파리 이미지 콜아웃 / 텍스트 선택 / 우클릭 메뉴 모두 차단
+   · 사용법:
+       attachLongPress(el, {
+         onLongPress: () => { ... },   // 필수
+         onTap:       () => { ... },   // 선택 — 롱프레스 아닌 일반 탭
+         ms: 500,                      // 선택 — 기본 500ms
+       });
+══════════════════════════════ */
+function attachLongPress(el, { onLongPress, onTap, ms = 500 } = {}) {
+  let timer        = null;
+  let startX       = 0;
+  let startY       = 0;
+  let didLongPress = false;
+
+  /* 터치 시작
+     passive:false — setTimeout 콜백에서 preventDefault() 가 동작하려면 필수
+     사파리는 passive:true 리스너에선 preventDefault()를 무시함           */
+  el.addEventListener('touchstart', (e) => {
+    didLongPress = false;
+    startX = e.touches[0].clientX;
+    startY = e.touches[0].clientY;
+
+    timer = setTimeout(() => {
+      didLongPress = true;
+
+      /* 사파리 이미지 콜아웃(저장/복사 팝업) 차단 */
+      e.preventDefault();
+
+      /* 햅틱 피드백 — 안드로이드 / 일부 iOS PWA */
+      if (navigator.vibrate) navigator.vibrate(40);
+
+      onLongPress?.();
+    }, ms);
+  }, { passive: false });
+
+  /* 스크롤 중이면 롱프레스 취소 */
+  el.addEventListener('touchmove', (e) => {
+    const dx = Math.abs(e.touches[0].clientX - startX);
+    const dy = Math.abs(e.touches[0].clientY - startY);
+    if (dx > 8 || dy > 8) {
+      clearTimeout(timer);
+      timer = null;
+    }
+  }, { passive: true });
+
+  /* 터치 끝 */
+  el.addEventListener('touchend', () => {
+    clearTimeout(timer);
+    timer = null;
+    if (!didLongPress) onTap?.();
+  });
+
+  /* 터치 취소 (전화 수신 등) */
+  el.addEventListener('touchcancel', () => {
+    clearTimeout(timer);
+    timer = null;
+  });
+
+  /* 데스크톱: 우클릭 → 롱프레스와 동일하게 처리 */
+  el.addEventListener('contextmenu', (e) => {
+    e.preventDefault();
+    onLongPress?.();
+  });
+}

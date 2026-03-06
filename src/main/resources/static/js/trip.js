@@ -5,15 +5,12 @@ function switchTab(name, btnEl) {
   if (currentTab === name) return;
   currentTab = name;
 
-  // 버튼 active
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
   btnEl.classList.add('active');
 
-  // 패널 전환
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
   document.getElementById('section' + capitalize(name)).classList.add('active');
 
-  // 인디케이터 이동
   moveIndicator(btnEl);
 }
 
@@ -22,11 +19,11 @@ function capitalize(s) {
 }
 
 function moveIndicator(btnEl) {
-  const ind  = document.getElementById('tabIndicator');
-  const bar  = document.getElementById('tabBar');
+  const ind     = document.getElementById('tabIndicator');
+  const bar     = document.getElementById('tabBar');
   const barRect = bar.getBoundingClientRect();
   const btnRect = btnEl.getBoundingClientRect();
-  const pad  = 10;
+  const pad     = 10;
   ind.style.left  = (btnRect.left - barRect.left + pad) + 'px';
   ind.style.width = (btnRect.width - pad * 2) + 'px';
 }
@@ -40,7 +37,6 @@ function initIndicator() {
    trip.js — 디테일 페이지 전용
 ═══════════════════════════════ */
 
-/* ── URL에서 trip id 파싱 ── */
 const tripId = (() => {
   const p = new URLSearchParams(location.search);
   return p.get('id');
@@ -48,10 +44,9 @@ const tripId = (() => {
 
 let tripData = null;
 
-/* ── 날짜 포맷 ── */
 function fmtDate(str) {
   if (!str) return '';
-  const d = new Date(str);
+  const d   = new Date(str);
   const kst = new Date(d.getTime() + 9 * 60 * 60 * 1000);
   return kst.toISOString().slice(0, 10).replace(/-/g, '.');
 }
@@ -68,7 +63,6 @@ function fmtDuration(sec) {
   return m ? `${m}분 ${s}초` : `${s}초`;
 }
 
-/* ── 로딩 스켈레톤 ── */
 function showSkeleton() {
   document.getElementById('navTitle').textContent = '불러오는 중…';
   document.getElementById('tripHero').innerHTML =
@@ -81,12 +75,10 @@ function showSkeleton() {
     </div>`;
 }
 
-/* ── 여행 기본 정보 렌더링 ── */
 function renderInfo(trip) {
   document.getElementById('navTitle').textContent = trip.title;
   document.title = `${trip.title} — memories.`;
 
-  // hero
   document.getElementById('tripHero').innerHTML =
     `<div class="trip-hero-ph">
        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
@@ -96,10 +88,8 @@ function renderInfo(trip) {
        </svg>
      </div>`;
 
-  // 기본 정보
-  const dateStr = fmtRange(trip.started_at, trip.ended_at);
-  const memoHtml = trip.memo
-    ? `<div class="trip-memo">${trip.memo}</div>` : '';
+  const dateStr  = fmtRange(trip.started_at, trip.ended_at);
+  const memoHtml = trip.memo ? `<div class="trip-memo">${trip.memo}</div>` : '';
 
   document.getElementById('tripInfoBlock').innerHTML = `
     <div class="trip-title">${trip.title}</div>
@@ -134,10 +124,9 @@ function renderInfo(trip) {
     ${memoHtml}`;
 }
 
-/* ── 하이라이트 렌더링 ── */
 function renderHighlight(highlights) {
   const sec = document.getElementById('sectionHighlight');
-  const h = highlights?.[0] ?? null;
+  const h   = highlights?.[0] ?? null;
 
   if (!h) {
     sec.innerHTML = `
@@ -171,17 +160,15 @@ function renderHighlight(highlights) {
 /* ══════════════════════════════
    갤러리 — 업로드 / 선택 / 다운로드
 ══════════════════════════════ */
-let allPhotos    = [];   // 현재 여행 전체 사진
-let selectMode   = false;
-let selectedIds  = new Set();
+let allPhotos   = [];
+let selectMode  = false;
+let selectedIds = new Set();
 
-/* ── 갤러리 렌더링 ── */
 function renderGallery(photos) {
   allPhotos = photos ?? [];
   const sec   = document.getElementById('sectionGallery');
   const total = allPhotos.length;
 
-  // 헤더: 장수 + 업로드 버튼
   sec.innerHTML = `
     <div class="gallery-header">
       <div class="section-count-label" id="galleryCount">${total}장</div>
@@ -211,13 +198,23 @@ function renderGallery(photos) {
   renderGalleryGrid();
 }
 
+/* ══════════════════════════════
+   갤러리 그리드 — IntersectionObserver lazy load + 무한스크롤
+══════════════════════════════ */
+const BATCH_SIZE   = 12;
+let   renderedCount = 0;
+let   imgObserver   = null;
+let   sentinel      = null;
+
 function renderGalleryGrid() {
   const sec = document.getElementById('sectionGallery');
-  // 기존 그리드만 교체
-  const existingGrid = sec.querySelector('.gallery-grid');
-  if (existingGrid) existingGrid.remove();
-  const existingEmpty = sec.querySelector('.gallery-empty');
-  if (existingEmpty) existingEmpty.remove();
+
+  sec.querySelector('.gallery-grid')?.remove();
+  sec.querySelector('.gallery-empty')?.remove();
+  sec.querySelector('.gallery-sentinel')?.remove();
+
+  imgObserver?.disconnect();
+  renderedCount = 0;
 
   if (allPhotos.length === 0) {
     sec.innerHTML += `
@@ -232,29 +229,102 @@ function renderGalleryGrid() {
     return;
   }
 
-  let grid = `<div class="gallery-grid" id="galleryGrid">`;
-  allPhotos.forEach((p, i) => {
+  const grid = document.createElement('div');
+  grid.className = 'gallery-grid';
+  grid.id = 'galleryGrid';
+  sec.appendChild(grid);
+
+  sentinel = document.createElement('div');
+  sentinel.className = 'gallery-sentinel';
+  sec.appendChild(sentinel);
+
+  imgObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (!entry.isIntersecting) return;
+      const img = entry.target;
+      const src = img.dataset.src;
+      if (!src) return;
+      img.src     = src;
+      img.onload  = () => img.classList.add('loaded');
+      img.onerror = () => img.closest('.gallery-item')?.classList.add('img-error');
+      imgObserver.unobserve(img);
+    });
+  }, { rootMargin: '200px' });
+
+  const scrollObserver = new IntersectionObserver((entries) => {
+    if (entries[0].isIntersecting) appendBatch();
+  }, { rootMargin: '300px' });
+  scrollObserver.observe(sentinel);
+
+  appendBatch();
+
+  const countEl = document.getElementById('galleryCount');
+  if (countEl) countEl.textContent = allPhotos.length + '장';
+}
+
+function appendBatch() {
+  const grid  = document.getElementById('galleryGrid');
+  if (!grid) return;
+
+  const batch = allPhotos.slice(renderedCount, renderedCount + BATCH_SIZE);
+  if (batch.length === 0) { sentinel?.remove(); return; }
+
+  batch.forEach((p, batchIdx) => {
+    const i   = renderedCount + batchIdx;
     const sel = selectedIds.has(p.id);
-    grid += `
-      <div class="gallery-item${sel ? ' selected' : ''}" data-id="${p.id}" data-idx="${i}"
-           onclick="onPhotoTap(${p.id}, ${i})"
-           oncontextmenu="onPhotoLongPress(event, ${p.id})">
-        ${p.file_path
-          ? `<img src="${p.file_path}" loading="lazy">`
-          : `<div class="gallery-item-ph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div>`}
+    const el  = document.createElement('div');
+    el.className     = `gallery-item touch-lock${sel ? ' selected' : ''}`;
+    el.dataset.id    = p.id;
+    el.dataset.idx   = i;
+
+    /* ── 터치 롱프레스 처리 ── */
+    attachPhotoLongPress(el, p.id, i);
+
+    if (p.file_path) {
+      el.innerHTML = `
+        <div class="img-wrap">
+          <div class="img-skeleton"></div>
+          <img data-src="${p.file_path}" alt="">
+        </div>
         <div class="gallery-check">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
             <polyline points="20 6 9 17 4 12"/>
           </svg>
+        </div>`;
+      imgObserver.observe(el.querySelector('img'));
+    } else {
+      el.innerHTML = `
+        <div class="gallery-item-ph">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <rect x="3" y="3" width="18" height="18" rx="2"/>
+            <circle cx="8.5" cy="8.5" r="1.5"/>
+            <polyline points="21 15 16 10 5 21"/>
+          </svg>
         </div>
-      </div>`;
-  });
-  grid += `</div>`;
-  sec.innerHTML += grid;
+        <div class="gallery-check">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+        </div>`;
+    }
 
-  // 장수 업데이트
-  const countEl = document.getElementById('galleryCount');
-  if (countEl) countEl.textContent = allPhotos.length + '장';
+    grid.appendChild(el);
+  });
+
+  renderedCount += batch.length;
+}
+
+/* ── 갤러리 아이템에 롱프레스 붙이기 (구현은 common.js의 attachLongPress) ── */
+function attachPhotoLongPress(el, photoId, idx) {
+  attachLongPress(el, {
+    onLongPress: () => {
+      if (!selectMode) enterSelectMode();
+      toggleSelect(photoId);
+      el.classList.add('long-pressing');
+      setTimeout(() => el.classList.remove('long-pressing'), 200);
+    },
+    onTap: () => onPhotoTap(photoId, idx),
+  });
 }
 
 /* ── 사진 탭: 단순 탭 / 선택 모드 탭 ── */
@@ -265,21 +335,18 @@ function onPhotoTap(id, idx) {
     openPhoto(idx);
   }
 }
-function onPhotoLongPress(e, id) {
-  e.preventDefault();
-  if (!selectMode) enterSelectMode();
-  toggleSelect(id);
-}
 
 /* ── 선택 모드 ── */
 function enterSelectMode() {
   selectMode = true;
   selectedIds.clear();
   document.getElementById('sectionGallery').classList.add('select-mode');
-  // Nav: 다운로드 + 취소 표시
-  document.getElementById('btnDownload')?.style && (document.getElementById('btnDownload').style.display = 'flex');
-  document.getElementById('btnSelectCancel')?.style && (document.getElementById('btnSelectCancel').style.display = 'flex');
-  document.getElementById('btnMore')?.style && (document.getElementById('btnMore').style.display = 'none');
+  document.getElementById('btnDownload')?.style &&
+    (document.getElementById('btnDownload').style.display = 'flex');
+  document.getElementById('btnSelectCancel')?.style &&
+    (document.getElementById('btnSelectCancel').style.display = 'flex');
+  document.getElementById('btnMore')?.style &&
+    (document.getElementById('btnMore').style.display = 'none');
   updateSelectUI();
 }
 
@@ -287,10 +354,9 @@ function cancelSelect() {
   selectMode = false;
   selectedIds.clear();
   document.getElementById('sectionGallery').classList.remove('select-mode');
-  document.getElementById('btnDownload').style.display = 'none';
+  document.getElementById('btnDownload').style.display  = 'none';
   document.getElementById('btnSelectCancel').style.display = 'none';
   document.getElementById('btnMore').style.display = 'flex';
-  // 체크 해제
   document.querySelectorAll('.gallery-item.selected')
     .forEach(el => el.classList.remove('selected'));
   updateSelectUI();
@@ -302,7 +368,6 @@ function toggleSelect(id) {
   } else {
     selectedIds.add(id);
   }
-  // DOM 업데이트
   const el = document.querySelector(`.gallery-item[data-id="${id}"]`);
   if (el) el.classList.toggle('selected', selectedIds.has(id));
   updateSelectUI();
@@ -313,9 +378,8 @@ function updateSelectUI() {
   const btn = document.getElementById('btnDownload');
   if (btn) {
     btn.style.opacity = cnt > 0 ? '1' : '0.35';
-    btn.disabled = cnt === 0;
+    btn.disabled      = cnt === 0;
   }
-  // Nav 타이틀에 선택 개수 표시
   const title = document.getElementById('navTitle');
   if (selectMode && title) {
     title.textContent = cnt > 0 ? `${cnt}장 선택` : '선택';
@@ -330,11 +394,11 @@ function downloadSelected() {
 
   targets.forEach((p, i) => {
     setTimeout(() => {
-      const a = document.createElement('a');
-      a.href = p.file_path;
+      const a    = document.createElement('a');
+      a.href     = p.file_path;
       a.download = p.file_path.split('/').pop() || `photo_${p.id}.jpg`;
       a.click();
-    }, i * 120);  // 브라우저 다운로드 제한 회피
+    }, i * 120);
   });
 
   showToast(`${targets.length}장 다운로드 시작`);
@@ -352,7 +416,6 @@ async function handleFiles(files) {
   if (!files?.length) return;
   const fileArr = Array.from(files);
 
-  // 업로드 시트 열기
   showUploadSheet(fileArr.length);
 
   let done = 0;
@@ -380,7 +443,6 @@ async function handleFiles(files) {
     updateUploadProgress(done, fileArr.length);
   }
 
-  // 완료 후 갤러리 반영
   const newPhotos = results.filter(Boolean);
   if (newPhotos.length > 0) {
     allPhotos = [...allPhotos, ...newPhotos];
@@ -389,16 +451,13 @@ async function handleFiles(files) {
   }
 
   setTimeout(hideUploadSheet, 1200);
-
-  // 파일 인풋 초기화
   document.getElementById('fileInput').value = '';
 }
 
-/* ── 실제 업로드 API 호출 ── */
 async function uploadPhoto(formData, onProgress) {
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
-    xhr.open('POST', '/photos/upload');
+    xhr.open('POST', 'api/photo/upload');
 
     xhr.upload.onprogress = (e) => {
       if (e.lengthComputable) onProgress(Math.round(e.loaded / e.total * 100));
@@ -416,14 +475,13 @@ async function uploadPhoto(formData, onProgress) {
   });
 }
 
-/* ── 업로드 시트 UI ── */
-let uploadItems = {};   // filename → DOM el
+let uploadItems = {};
 
 function showUploadSheet(total) {
   uploadItems = {};
   document.getElementById('uploadFileList').innerHTML = '';
-  document.getElementById('uploadCount').textContent = `0 / ${total}`;
-  document.getElementById('uploadFill').style.width = '0%';
+  document.getElementById('uploadCount').textContent  = `0 / ${total}`;
+  document.getElementById('uploadFill').style.width   = '0%';
   document.getElementById('uploadSheet').classList.add('show');
 }
 
@@ -433,7 +491,7 @@ function hideUploadSheet() {
 
 function updateUploadProgress(done, total) {
   document.getElementById('uploadCount').textContent = `${done} / ${total}`;
-  document.getElementById('uploadFill').style.width = `${Math.round(done / total * 100)}%`;
+  document.getElementById('uploadFill').style.width  = `${Math.round(done / total * 100)}%`;
 }
 
 function updateUploadItem(name, status, pct) {
@@ -444,7 +502,7 @@ function updateUploadItem(name, status, pct) {
     el.innerHTML = `
       <div class="ufi-name">${name}</div>
       <div class="ufi-right">
-        <div class="ufi-pct" id="ufi-pct-${CSS.escape(name)}"></div>
+        <div class="ufi-pct"  id="ufi-pct-${CSS.escape(name)}"></div>
         <div class="ufi-icon" id="ufi-icon-${CSS.escape(name)}"></div>
       </div>`;
     document.getElementById('uploadFileList').appendChild(el);
@@ -455,8 +513,8 @@ function updateUploadItem(name, status, pct) {
   const iconEl = el.querySelector('.ufi-icon');
 
   if (status === 'uploading') {
-    pctEl.textContent  = pct != null ? pct + '%' : '';
-    iconEl.innerHTML   = `<div class="ufi-spinner"></div>`;
+    pctEl.textContent = pct != null ? pct + '%' : '';
+    iconEl.innerHTML  = `<div class="ufi-spinner"></div>`;
     el.className = 'upload-file-item uploading';
   } else if (status === 'done') {
     pctEl.textContent = '';
@@ -471,7 +529,7 @@ function updateUploadItem(name, status, pct) {
 
 /* ── 동영상 렌더링 ── */
 function renderVideos(videos) {
-  const sec = document.getElementById('sectionVideos');
+  const sec   = document.getElementById('sectionVideos');
   const total = videos?.length ?? 0;
 
   sec.innerHTML = `<div class="section-count-label">${total}개</div>`;
@@ -509,7 +567,6 @@ function renderVideos(videos) {
 /* ── 일정 렌더링 ── */
 function renderSchedules(schedules) {
   const sec = document.getElementById('sectionSchedule');
-
   sec.innerHTML = '';
 
   if (!schedules?.length) {
@@ -526,7 +583,6 @@ function renderSchedules(schedules) {
     return;
   }
 
-  // day 별로 그룹핑
   const days = {};
   schedules.forEach(s => {
     const key = s.day ?? '—';
@@ -565,14 +621,11 @@ async function loadAll() {
   showSkeleton();
 
   try {
-    // 병렬 요청
     const [trip, photos, videos, schedules, highlights] = await Promise.all([
       TripsAPI.trips.detail({ id: tripId }),
       TripsAPI.photos.list({ trip_id: tripId }),
       TripsAPI.videos.list({ trip_id: tripId }),
-      TripsAPI.schedules ? TripsAPI.schedules.list({ trip_id: tripId }) : Promise.resolve([]),
-/*      TripsAPI.highlights ? TripsAPI.highlights.list({ trip_id: tripId }) : Promise.resolve([]),
-*/    ]);
+    ]);
 
     tripData = trip;
     renderInfo(trip);
@@ -588,11 +641,8 @@ async function loadAll() {
 }
 
 /* ── 뒤로가기 ── */
-function goBack() {
-  Router.pop();
-}
+function goBack() { Router.pop(); }
 
 /* ── 초기 실행 ── */
 loadAll();
-// DOM 렌더 후 인디케이터 초기 위치 계산
 requestAnimationFrame(initIndicator);

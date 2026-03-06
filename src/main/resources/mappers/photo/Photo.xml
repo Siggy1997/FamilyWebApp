@@ -17,7 +17,29 @@
 		WHERE 
 			trip_id = #{trip_id}
 		ORDER BY 
-			taken_at ASC, id ASC
+			id DESC
 	</select>
+	
+    <!-- ── 사진 추가 ── -->
+    <insert id="photoUpload" parameterType="map" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO photos (
+            trip_id,
+            file_path,
+            file_name,
+            taken_at,
+            width,
+            height,
+            size_bytes
+        ) VALUES (
+            #{trip_id},
+            #{file_path},
+            #{file_name},
+            #{taken_at},
+            #{width},
+            #{height},
+            #{size_bytes}
+        )
+    </insert>	
+
 
 </mapper>

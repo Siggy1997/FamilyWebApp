@@ -171,3 +171,43 @@ body {
 @keyframes fadeUp  { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes spin    { to { transform: rotate(360deg); } }
 @keyframes fadeIn  { from { opacity: 0; } to { opacity: 1; } }
+
+/* ════════════════════════════════════════
+   common.css 에 아래 코드를 추가하세요
+════════════════════════════════════════ */
+
+/* ── 사파리/모바일 터치 UI 억제 ──────────────────
+   .no-callout   : 이미지 저장·복사 팝업 차단
+   .no-select    : 텍스트 드래그 선택 차단
+   .no-tap-hl    : 탭 시 파란 하이라이트 제거
+   위 세 가지를 한 번에 쓰려면 .touch-lock 사용
+──────────────────────────────────────── */
+.no-callout {
+  -webkit-touch-callout: none;
+}
+.no-select {
+  -webkit-user-select: none;
+  user-select: none;
+}
+.no-tap-hl {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* 세 가지 한꺼번에 */
+.touch-lock {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* 갤러리 아이템 롱프레스 피드백 */
+.long-pressing {
+  transform: scale(0.95);
+  transition: transform 0.15s ease;
+}
+
+/* 갤러리 이미지 — 터치 이벤트를 부모로 위임 */
+.gallery-item img {
+  pointer-events: none;  /* img 가 터치를 직접 받지 않고 .gallery-item 으로 버블링 */
+}
