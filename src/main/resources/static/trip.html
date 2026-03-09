@@ -14,20 +14,6 @@
 <body>
 <div id="toast"></div>
 
-<!-- ── 업로드 진행 시트 ── -->
-<div class="upload-sheet" id="uploadSheet">
-  <div class="upload-sheet-inner">
-    <div class="upload-sheet-header">
-      <div class="upload-sheet-title">업로드 중</div>
-      <div class="upload-sheet-count" id="uploadCount">0 / 0</div>
-    </div>
-    <div class="upload-progress-bar">
-      <div class="upload-progress-fill" id="uploadFill"></div>
-    </div>
-    <div class="upload-file-list" id="uploadFileList"></div>
-  </div>
-</div>
-
 <!-- 숨겨진 파일 인풋 -->
 <input type="file" id="fileInput" accept="image/*" multiple style="display:none" onchange="handleFiles(this.files)">
 
@@ -50,7 +36,7 @@
   <!-- ── 상단 Nav ── -->
   <div class="detail-nav">
     <div class="detail-nav-inner">
-      <button class="btn-back" onclick="goBack()">
+      <button class="btn-back" id="btnBack" onclick="goBack()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
           <polyline points="15 18 9 12 15 6"/>
         </svg>
@@ -58,20 +44,9 @@
       </button>
       <div class="nav-title" id="navTitle"></div>
       <div class="nav-actions" id="navActions">
-        <!-- 선택 모드: 다운로드 + 취소 -->
-        <button class="nav-icon-btn nav-icon-btn--download" id="btnDownload" onclick="downloadSelected()" style="display:none">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
-            <polyline points="7 10 12 15 17 10"/>
-            <line x1="12" y1="15" x2="12" y2="3"/>
-          </svg>
-        </button>
+        <!-- 선택 모드: 취소만 표시 -->
         <button class="nav-text-btn" id="btnSelectCancel" onclick="cancelSelect()" style="display:none">취소</button>
-        <button class="btn-more" id="btnMore">
-			<span>선택</span>
-        </button>
       </div>
-      <input type="file" id="fileInput" accept="image/*" multiple style="display:none" onchange="handleFiles(this.files)">
     </div>
   </div>
 
@@ -102,6 +77,26 @@
     </div>
 
     <div class="page-end"></div>
+  </div>
+
+  <!-- ── 선택 모드 하단 액션 바 ── -->
+  <div class="select-action-bar" id="selectActionBar">
+    <button class="select-action-btn select-action-btn--delete" onclick="deleteSelected()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="3 6 5 6 21 6"/>
+        <path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>
+        <path d="M10 11v6M14 11v6"/>
+        <path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/>
+      </svg>
+    </button>
+    <div class="select-action-count" id="selectActionCount">0개 선택</div>
+    <button class="select-action-btn select-action-btn--download" onclick="downloadSelected()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+        <polyline points="7 10 12 15 17 10"/>
+        <line x1="12" y1="15" x2="12" y2="3"/>
+      </svg>
+    </button>
   </div>
 
 </div>

@@ -138,9 +138,6 @@ function attachLongPress(el, { onLongPress, onTap, ms = 500 } = {}) {
       /* 사파리 이미지 콜아웃(저장/복사 팝업) 차단 */
       e.preventDefault();
 
-      /* 햅틱 피드백 — 안드로이드 / 일부 iOS PWA */
-      if (navigator.vibrate) navigator.vibrate(40);
-
       onLongPress?.();
     }, ms);
   }, { passive: false });
