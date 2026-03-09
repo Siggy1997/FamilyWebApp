@@ -7,28 +7,19 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="theme-color" content="#0a0704">
 <title>사진 보기</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;1,400&family=Noto+Sans+KR:wght@300;400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/common.css">
+<link rel="manifest" href="/manifest.json">
+<link rel="stylesheet" href="/css/common.css">
+<link rel="stylesheet" href="/css/trip.css">
 <style>
 body {
   background: #0a0704;
-  animation: none; /* 뷰어는 페이드로 */
-  animation: viewerIn 0.3s ease both;
+  animation: none;
+  overflow: hidden;
 }
-body.exit, body.exit-back {
-  animation: viewerOut 0.22s ease both !important;
-}
-@keyframes viewerIn {
-  from { opacity: 0; }
-  to   { opacity: 1; }
-}
-@keyframes viewerOut {
-  from { opacity: 1; }
-  to   { opacity: 0; }
-}
-body::after { display: none; } /* 뷰어에선 노이즈 제거 */
+body::after { display: none; }
 
-/* ── 헤더 ── */
 .viewer-header {
   position: fixed;
   top: 0; left: 50%; transform: translateX(-50%);
@@ -37,7 +28,7 @@ body::after { display: none; } /* 뷰어에선 노이즈 제거 */
   display: flex; align-items: center;
   justify-content: space-between;
   z-index: 100;
-  background: linear-gradient(to bottom, rgba(10,7,4,0.65) 0%, transparent 100%);
+  background: linear-gradient(to bottom, rgba(10,7,4,0.7) 0%, transparent 100%);
   transition: opacity 0.3s;
 }
 .viewer-header.hidden { opacity: 0; pointer-events: none; }
@@ -48,41 +39,31 @@ body::after { display: none; } /* 뷰어에선 노이즈 제거 */
   font-size: 14px; color: rgba(255,255,255,0.65);
 }
 
-/* ── 메인 사진 영역 ── */
-.viewer-main {
-  position: fixed; inset: 0;
-  display: flex; align-items: center; justify-content: center;
-}
-
-.photo-wrap {
+.swiper {
+  position: fixed;
+  inset: 0;
   width: 100%;
-  position: relative;
-  touch-action: pan-y pinch-zoom;
+  height: 100%;
+}
+.swiper-slide {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
 }
 
-.photo-item {
-  display: none;
-  width: 100%;
-  padding: 0 16px;
-}
-.photo-item.active { display: block; }
-.photo-item.swipe-left  { animation: swipeLeft  0.3s var(--ease) both; }
-.photo-item.swipe-right { animation: swipeRight 0.3s var(--ease) both; }
-.photo-item.enter-left  { animation: enterLeft  0.3s var(--ease) both; }
-.photo-item.enter-right { animation: enterRight 0.3s var(--ease) both; }
-
-@keyframes swipeLeft  { from { opacity:1; transform:translateX(0); } to { opacity:0; transform:translateX(-40px); } }
-@keyframes swipeRight { from { opacity:1; transform:translateX(0); } to { opacity:0; transform:translateX(40px); } }
-@keyframes enterLeft  { from { opacity:0; transform:translateX(40px); } to { opacity:1; transform:translateX(0); } }
-@keyframes enterRight { from { opacity:0; transform:translateX(-40px); } to { opacity:1; transform:translateX(0); } }
-
+/* width 100%, 세로 중앙, 비율 유지 */
 .photo-img {
   width: 100%;
-  max-height: 65dvh;
+  height: auto;
+  max-height: 100dvh;
   object-fit: contain;
-  border-radius: 12px;
   display: block;
+  opacity: 0;
+  transition: opacity 0.18s ease;
 }
+.photo-img.loaded { opacity: 1; }
+
 .photo-ph {
   width: 100%;
   aspect-ratio: 3/4;
@@ -99,74 +80,43 @@ body::after { display: none; } /* 뷰어에선 노이즈 제거 */
 .p-bg-6 { background: linear-gradient(160deg,#b8e8d8,#68b8a0,#386850); }
 .p-bg-7 { background: linear-gradient(160deg,#e8b8c8,#c07888,#804858); }
 
-/* 스와이프 힌트 화살표 */
-.nav-arrow {
-  position: fixed; top: 50%; transform: translateY(-50%);
-  width: 36px; height: 36px; border-radius: 50%;
-  background: rgba(255,255,255,0.1);
-  backdrop-filter: blur(8px);
-  display: flex; align-items: center; justify-content: center;
-  color: rgba(255,255,255,0.6); cursor: pointer;
-  transition: all 0.15s; z-index: 50;
-  border: 1px solid rgba(255,255,255,0.12);
-}
-.nav-arrow:active { background: rgba(255,255,255,0.2); }
-.nav-arrow.left  { left: 10px; }
-.nav-arrow.right { right: 10px; }
-.nav-arrow svg { width: 16px; height: 16px; }
-.nav-arrow.disabled { opacity: 0.2; pointer-events: none; }
-
-/* ── 하단 정보 ── */
 .viewer-bottom {
   position: fixed;
   bottom: 0; left: 50%; transform: translateX(-50%);
   width: 100%; max-width: var(--max-w);
   z-index: 100;
-  background: linear-gradient(to top, rgba(10,7,4,0.85) 0%, transparent 100%);
+  background: linear-gradient(to top, rgba(10,7,4,0.9) 0%, transparent 100%);
   transition: opacity 0.3s;
 }
 .viewer-bottom.hidden { opacity: 0; pointer-events: none; }
 
-/* 캡션 */
-.caption-area {
-  padding: 0 20px 14px;
-}
-.caption-trip {
-  font-size: 10px; color: rgba(255,255,255,0.4);
-  font-weight: 300; margin-bottom: 4px;
-  letter-spacing: 0.04em; text-transform: uppercase;
-}
-.caption-text {
-  font-family: var(--font-display);
-  font-style: italic;
-  font-size: 17px; color: rgba(255,255,255,0.92);
-  line-height: 1.3; margin-bottom: 5px;
-}
-.caption-date { font-size: 11px; color: rgba(255,255,255,0.38); }
-
-/* 썸네일 스트립 */
 .strip {
   display: flex; gap: 5px;
-  padding: 0 18px calc(var(--safe-bot) + 12px);
+  padding: 31px 18px calc(var(--safe-bot) + 24px);
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 .strip::-webkit-scrollbar { display: none; }
 .strip-item {
-  flex-shrink: 0;
-  width: 52px; height: 52px;
-  border-radius: 8px; overflow: hidden;
-  opacity: 0.45;
-  border: 2px solid transparent;
-  transition: all 0.2s; cursor: pointer;
+	flex-shrink: 0;
+	width: 40px;
+	height: 40px;
+	border-radius: 8px;
+	overflow: hidden;
+	opacity: 0.45;
+	border: 2px solid transparent;
+	transition: all 0.2s;
+	cursor: pointer;
+	background: rgba(255, 255, 255, 0.08);
 }
-.strip-item.active { opacity: 1; border-color: var(--accent); }
-.strip-item div {
+.strip-item.active { opacity: 1; border-color: var(--accent);}
+.strip-item img { width: 100%; height: 100%; object-fit: cover; }
+.strip-item-ph {
   width: 100%; height: 100%;
   display: flex; align-items: center; justify-content: center;
   font-size: 18px;
 }
 
-/* 액션 버튼 행 */
 .action-row {
   display: flex; justify-content: flex-end;
   gap: 8px; padding: 0 18px 10px;
@@ -187,195 +137,141 @@ body::after { display: none; } /* 뷰어에선 노이즈 제거 */
 <body>
 <div id="toast"></div>
 
-<!-- 헤더 -->
 <header class="viewer-header" id="vheader">
-  <button class="icon-btn dark" onclick="goBack('detail.html')">
+  <button class="icon-btn dark" onclick="Router.pop()">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
       <polyline points="15 18 9 12 15 6"/>
     </svg>
   </button>
-  <div class="counter" id="counter">1 / 7</div>
-  <button class="icon-btn dark" onclick="showToast('저장됨')">
+  <div class="counter" id="counter"></div>
+  <button class="icon-btn dark" onclick="sharePhoto()">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-      <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
-      <polyline points="17 21 17 13 7 13 7 21"/>
-      <polyline points="7 3 7 8 15 8"/>
+      <path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/>
+      <polyline points="16 6 12 2 8 6"/>
+      <line x1="12" y1="2" x2="12" y2="15"/>
     </svg>
   </button>
 </header>
 
-<!-- 좌우 화살표 -->
-<button class="nav-arrow left disabled" id="btn-prev" onclick="prevPhoto()">
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-    <polyline points="15 18 9 12 15 6"/>
-  </svg>
-</button>
-<button class="nav-arrow right" id="btn-next" onclick="nextPhoto()">
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-    <polyline points="9 18 15 12 9 6"/>
-  </svg>
-</button>
-
-<!-- 메인 사진 -->
-<div class="viewer-main" id="viewer-main">
-  <div class="photo-wrap" id="photo-wrap">
-
-    <div class="photo-item active" data-idx="0">
-      <div class="photo-ph p-bg-1">🌊</div>
-    </div>
-    <div class="photo-item" data-idx="1">
-      <div class="photo-ph p-bg-2">🌴</div>
-    </div>
-    <div class="photo-item" data-idx="2">
-      <div class="photo-ph p-bg-3">🍊</div>
-    </div>
-    <div class="photo-item" data-idx="3">
-      <div class="photo-ph p-bg-4">🌅</div>
-    </div>
-    <div class="photo-item" data-idx="4">
-      <div class="photo-ph p-bg-5">🐴</div>
-    </div>
-    <div class="photo-item" data-idx="5">
-      <div class="photo-ph p-bg-6">🌿</div>
-    </div>
-    <div class="photo-item" data-idx="6">
-      <div class="photo-ph p-bg-7">🍜</div>
-    </div>
-
-  </div>
+<div class="swiper" id="mainSwiper">
+  <div class="swiper-wrapper" id="swiperWrapper"></div>
 </div>
 
-<!-- 하단 -->
 <div class="viewer-bottom" id="vbottom">
   <div class="action-row">
-    <button class="action-btn" onclick="showToast('공유했어요')">
+    <button class="action-btn" onclick="sharePhoto()">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
         <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
         <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
         <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
       </svg>
     </button>
-    <button class="action-btn" onclick="toggleFav(this)">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-      </svg>
-    </button>
   </div>
-  <div class="caption-area" id="caption-area">
-    <div class="caption-trip">제주 여름 여행 · 2024.08</div>
-    <div class="caption-text" id="caption-text">"협재 해수욕장에서의 오후"</div>
-    <div class="caption-date" id="caption-date">2024년 8월 13일 오후 3:24</div>
-  </div>
-  <div class="strip" id="strip">
-    <div class="strip-item active" onclick="goTo(0)"><div class="p-bg-1">🌊</div></div>
-    <div class="strip-item" onclick="goTo(1)"><div class="p-bg-2">🌴</div></div>
-    <div class="strip-item" onclick="goTo(2)"><div class="p-bg-3">🍊</div></div>
-    <div class="strip-item" onclick="goTo(3)"><div class="p-bg-4">🌅</div></div>
-    <div class="strip-item" onclick="goTo(4)"><div class="p-bg-5">🐴</div></div>
-    <div class="strip-item" onclick="goTo(5)"><div class="p-bg-6">🌿</div></div>
-    <div class="strip-item" onclick="goTo(6)"><div class="p-bg-7">🍜</div></div>
-  </div>
+  <div class="strip" id="strip"></div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
 <script src="js/common.js"></script>
 <script>
-const photos = [
-  { caption: '"협재 해수욕장에서의 오후"', date: '2024년 8월 13일 오후 3:24' },
-  { caption: '"야자수 그늘 아래 낮잠"',     date: '2024년 8월 13일 오후 2:10' },
-  { caption: '"감귤 따기 체험"',            date: '2024년 8월 14일 오전 10:45' },
-  { caption: '"성산일출봉 일출"',           date: '2024년 8월 14일 오전 5:42' },
-  { caption: '"말 타기 체험 — 지수"',       date: '2024년 8월 13일 오후 4:15' },
-  { caption: '"비자림 숲길 산책"',           date: '2024년 8월 14일 오후 1:30' },
-  { caption: '"마지막 밤 저녁 식사"',        date: '2024년 8월 14일 오후 7:18' },
-];
+const photos  = JSON.parse(sessionStorage.getItem('viewer_photos') || '[]');
+const trip    = JSON.parse(sessionStorage.getItem('viewer_trip')   || '{}');
+const total   = photos.length;
+const initIdx = Math.max(0, Math.min(
+  parseInt(new URLSearchParams(location.search).get('idx') || '0'),
+  total - 1
+));
 
-let cur = 0;
-const total = photos.length;
+// 슬라이드 생성 — 초기 슬라이드만 src 직접 설정 (깜박임 방지)
+document.getElementById('swiperWrapper').innerHTML = photos.map((p, i) => `
+  <div class="swiper-slide">
+    ${p.file_path
+      ? `<img class="photo-img${i === initIdx ? ' loading-now' : ''}"
+             ${i === initIdx ? `src="${p.file_path}"` : `data-src="${p.file_path}"`}
+             alt="">`
+      : `<div class="photo-ph p-bg-${(i % 7) + 1}">📷</div>`}
+  </div>`).join('');
 
-// URL 파라미터에서 초기 인덱스 읽기
-const initIdx = parseInt(getParam('idx') || '0');
-if (initIdx > 0 && initIdx < total) goTo(initIdx, true);
-
-function updateUI() {
-  document.getElementById('counter').textContent = `${cur + 1} / ${total}`;
-  document.getElementById('caption-text').textContent = photos[cur].caption;
-  document.getElementById('caption-date').textContent  = photos[cur].date;
-
-  // 스트립
-  document.querySelectorAll('.strip-item').forEach((el, i) => {
-    el.classList.toggle('active', i === cur);
-  });
-
-  // 화살표
-  document.getElementById('btn-prev').classList.toggle('disabled', cur === 0);
-  document.getElementById('btn-next').classList.toggle('disabled', cur === total - 1);
-
-  // 스트립 스크롤
-  const strip = document.getElementById('strip');
-  const active = strip.children[cur];
-  if (active) active.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+// 초기 슬라이드 이미지 즉시 loaded 처리
+const initImg = document.querySelector('.photo-img.loading-now');
+if (initImg) {
+  if (initImg.complete) initImg.classList.add('loaded');
+  else initImg.onload = () => initImg.classList.add('loaded');
+  initImg.classList.remove('loading-now');
 }
 
-function goTo(idx, instant = false) {
-  if (idx === cur || idx < 0 || idx >= total) return;
-  const dir = idx > cur ? 'left' : 'right';
-  const items = document.querySelectorAll('.photo-item');
-  const curEl  = items[cur];
-  const nextEl = items[idx];
+// 스트립 생성
+document.getElementById('strip').innerHTML = photos.map((p, i) => `
+  <div class="strip-item" id="strip-${i}" onclick="swiper.slideTo(${i})">
+    ${p.file_path
+      ? `<img src="${p.file_path}">`
+      : `<div class="strip-item-ph p-bg-${(i % 7) + 1}"></div>`}
+  </div>`).join('');
 
-  if (!instant) {
-    curEl.classList.add('swipe-' + dir);
-    setTimeout(() => { curEl.classList.remove('active', 'swipe-' + dir); }, 280);
-    nextEl.classList.add('active', 'enter-' + (dir === 'left' ? 'left' : 'right'));
-    setTimeout(() => nextEl.classList.remove('enter-left', 'enter-right'), 320);
-  } else {
-    curEl.classList.remove('active');
-    nextEl.classList.add('active');
-  }
-
-  cur = idx;
-  updateUI();
+function updateUI(idx) {
+  document.getElementById('counter').textContent = total ? `${idx + 1} / ${total}` : '';
+  document.querySelectorAll('.strip-item').forEach((el, i) =>
+    el.classList.toggle('active', i === idx));
+  document.getElementById(`strip-${idx}`)
+    ?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
 }
 
-function prevPhoto() { goTo(cur - 1); }
-function nextPhoto() { goTo(cur + 1); }
+function loadSlideImage(sw, idx) {
+  const slide = sw.slides[idx];
+  if (!slide) return;
+  const img = slide.querySelector('img[data-src]');
+  if (!img) return;
+  img.src = img.dataset.src;
+  img.removeAttribute('data-src');
+  img.onload  = () => img.classList.add('loaded');
+  img.onerror = () => img.classList.add('loaded');
+}
 
-// 스와이프 제스처
-let touchStartX = 0, touchStartY = 0;
-const wrap = document.getElementById('photo-wrap');
-wrap.addEventListener('touchstart', e => {
-  touchStartX = e.touches[0].clientX;
-  touchStartY = e.touches[0].clientY;
-}, { passive: true });
-wrap.addEventListener('touchend', e => {
-  const dx = e.changedTouches[0].clientX - touchStartX;
-  const dy = e.changedTouches[0].clientY - touchStartY;
-  if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5) {
-    dx < 0 ? nextPhoto() : prevPhoto();
-  }
-}, { passive: true });
+const swiper = new Swiper('#mainSwiper', {
+  initialSlide: initIdx,
+  speed: 300,
+  grabCursor: true,
+  on: {
+    init(sw) {
+      // 초기 슬라이드는 이미 로드됨 — 앞뒤만 prefetch
+      loadSlideImage(sw, sw.activeIndex - 1);
+      loadSlideImage(sw, sw.activeIndex + 1);
+      updateUI(sw.activeIndex);
+    },
+    slideChange(sw) {
+      loadSlideImage(sw, sw.activeIndex);
+      loadSlideImage(sw, sw.activeIndex + 1);
+      loadSlideImage(sw, sw.activeIndex - 1);
+      updateUI(sw.activeIndex);
+    },
+  },
+});
 
 // 탭으로 UI 토글
 let uiVisible = true;
-document.getElementById('viewer-main').addEventListener('click', (e) => {
-  if (e.target.closest('.nav-arrow')) return;
+document.getElementById('mainSwiper').addEventListener('click', e => {
+  if (e.target.closest('.strip') || e.target.closest('.action-btn')) return;
   uiVisible = !uiVisible;
   document.getElementById('vheader').classList.toggle('hidden', !uiVisible);
   document.getElementById('vbottom').classList.toggle('hidden', !uiVisible);
-  document.getElementById('btn-prev').style.opacity = uiVisible ? '' : '0';
-  document.getElementById('btn-next').style.opacity = uiVisible ? '' : '0';
 });
 
-// 좋아요
-function toggleFav(btn) {
-  const svg = btn.querySelector('svg path');
-  const on = svg.getAttribute('fill') === 'white';
-  svg.setAttribute('fill', on ? 'none' : 'white');
-  svg.setAttribute('stroke', on ? 'currentColor' : 'none');
-  showToast(on ? '좋아요 취소' : '❤️ 좋아요');
+async function sharePhoto() {
+  const p = photos[swiper.activeIndex];
+  if (!p?.file_path) return;
+  if (!navigator.share) { showToast('이 기기에서는 공유가 지원되지 않아요.'); return; }
+  try {
+    const res  = await fetch(p.file_path);
+    const blob = await res.blob();
+    const file = new File([blob], p.file_path.split('/').pop() || 'photo.jpg', { type: blob.type });
+    if (navigator.canShare?.({ files: [file] })) {
+      await navigator.share({ files: [file] });
+    } else {
+      await navigator.share({ url: p.file_path });
+    }
+  } catch (e) {
+    if (e.name !== 'AbortError') showToast('공유에 실패했어요.');
+  }
 }
-
-updateUI();
 </script>
 </body>
 </html>

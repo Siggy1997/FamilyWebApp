@@ -101,6 +101,9 @@ const Router = (() => {
   return { push, pop };
 })();
 
+/* ── 뒤로가기 ── */
+function goBack() { Router.pop(); }
+
 /* ════════════════════════════════════════
    common.js 에 아래 코드를 추가하세요
    (기존 showToast, Router 등 아래에 붙여넣기)

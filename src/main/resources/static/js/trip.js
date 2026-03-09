@@ -398,6 +398,7 @@ function attachPhotoLongPress(el, photoId, idx) {
 }
 
 function onPhotoTap(id, idx) {
+ if (_isScrolling) return;
   if (selectMode) {
     toggleSelect(id);
   } else {
@@ -485,93 +486,194 @@ function updateSelectUI() {
 }
 
 
+
 /* ═══════════════════════════════════════════════════════
-   사진 뷰어 — 전체화면 오버레이
+   사진 뷰어 — 아이폰 스타일 줌 트랜지션 (깜박임 없음)
 ═══════════════════════════════════════════════════════ */
 let viewerIdx = 0;
+let _viewerIframe = null;
 
 function openPhoto(idx) {
-  viewerIdx = idx;
   const photo = allPhotos[idx];
   if (!photo) return;
 
-  let viewer = document.getElementById('photoViewer');
-  if (!viewer) {
-    viewer = document.createElement('div');
-    viewer.id = 'photoViewer';
-    viewer.style.cssText = `
-      position: fixed; inset: 0; z-index: 100;
-      background: #000;
-      display: flex; flex-direction: column;
-      opacity: 0; transition: opacity 0.2s;
-    `;
-    viewer.innerHTML = `
-      <div id="viewerNav" style="
-        position: absolute; top: 0; left: 0; right: 0;
-        padding: env(safe-area-inset-top, 16px) 16px 12px;
-        display: flex; align-items: center; justify-content: space-between;
-        background: linear-gradient(to bottom, rgba(0,0,0,0.6), transparent);
-        z-index: 2;
-      ">
-        <button onclick="closePhoto()" style="
-          background: none; border: none; color: #fff;
-          font-size: 16px; padding: 8px; cursor: pointer;
-          display: flex; align-items: center; gap: 6px;
-        ">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="22" height="22">
-            <polyline points="15 18 9 12 15 6"/>
-          </svg>
-        </button>
-        <span id="viewerCount" style="color:#fff; font-size:14px; opacity:0.8;"></span>
-        <button id="viewerShareBtn" onclick="shareCurrentPhoto()" style="
-          background: none; border: none; color: #fff;
-          padding: 8px; cursor: pointer;
-        ">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" width="22" height="22">
-            <path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/>
-            <polyline points="16 6 12 2 8 6"/>
-            <line x1="12" y1="2" x2="12" y2="15"/>
-          </svg>
-        </button>
-      </div>
-      <div id="viewerImgWrap" style="
-        flex: 1; display: flex; align-items: center; justify-content: center;
-        overflow: hidden; position: relative;
-      ">
-        <img id="viewerImg" style="
-          max-width: 100%; max-height: 100%;
-          object-fit: contain;
-          user-select: none; -webkit-user-select: none;
-          -webkit-touch-callout: default;
-        " alt="">
-      </div>
-      <div id="viewerHint" style="
-        position: absolute; bottom: calc(env(safe-area-inset-bottom, 16px) + 16px);
-        left: 0; right: 0; text-align: center;
-        color: rgba(255,255,255,0.5); font-size: 12px;
-      ">이미지를 꾹 누르면 사진 앱에 저장할 수 있어요</div>
-    `;
+  sessionStorage.setItem('viewer_photos', JSON.stringify(allPhotos));
+  sessionStorage.setItem('viewer_trip',   JSON.stringify(tripData));
 
-    let touchStartX = 0;
-    viewer.addEventListener('touchstart', e => {
-      touchStartX = e.touches[0].clientX;
-    }, { passive: true });
-    viewer.addEventListener('touchend', e => {
-      const dx = e.changedTouches[0].clientX - touchStartX;
-      if (Math.abs(dx) > 60) {
-        if (dx < 0) viewerNext();
-        else viewerPrev();
-      }
-    }, { passive: true });
+  // 썸네일 rect
+  const thumbEl   = document.querySelector(`.gallery-item[data-idx="${idx}"] img`);
+  const thumbRect = thumbEl?.getBoundingClientRect()
+    ?? { left: window.innerWidth/2 - 40, top: window.innerHeight/2 - 40, width: 80, height: 80 };
 
-    document.body.appendChild(viewer);
+  /* ── 어두운 배경 ── */
+  const backdrop = document.createElement('div');
+  backdrop.style.cssText = `
+    position: fixed; inset: 0; z-index: 200;
+    background: #0a0704;
+    opacity: 0;
+    transition: opacity 0.28s ease;
+    pointer-events: none;
+  `;
+  document.body.appendChild(backdrop);
+
+  /* ── 전환 이미지 (썸네일 위치에서 시작) ── */
+  const hero = document.createElement('img');
+  hero.src = photo.file_path || '';
+  hero.style.cssText = `
+    position: fixed;
+    z-index: 201;
+    object-fit: cover;
+    border-radius: 6px;
+    left:   ${thumbRect.left}px;
+    top:    ${thumbRect.top}px;
+    width:  ${thumbRect.width}px;
+    height: ${thumbRect.height}px;
+    transition: left 0.3s cubic-bezier(0.4,0,0.2,1),
+                top    0.3s cubic-bezier(0.4,0,0.2,1),
+                width  0.3s cubic-bezier(0.4,0,0.2,1),
+                height 0.3s cubic-bezier(0.4,0,0.2,1),
+                border-radius 0.3s ease;
+    will-change: left, top, width, height;
+    pointer-events: none;
+  `;
+  document.body.appendChild(hero);
+
+  /* ── 목표 위치: width 100%, 세로 중앙 ── */
+  function getTargetRect() {
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    const nw = hero.naturalWidth  || vw;
+    const nh = hero.naturalHeight || vh;
+    const h  = (nh / nw) * vw;
+    return { left: 0, top: (vh - h) / 2, width: vw, height: h };
   }
 
-  _updateViewer(idx);
-  requestAnimationFrame(() => requestAnimationFrame(() => {
-    viewer.style.opacity = '1';
-  }));
-  document.body.style.overflow = 'hidden';
+  /* ── 애니메이션 실행 ── */
+  const animate = () => {
+    const t = getTargetRect();
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      backdrop.style.opacity  = '1';
+      hero.style.left         = t.left   + 'px';
+      hero.style.top          = t.top    + 'px';
+      hero.style.width        = t.width  + 'px';
+      hero.style.height       = t.height + 'px';
+      hero.style.borderRadius = '0px';
+      hero.style.objectFit    = 'contain';
+    }));
+  };
+
+  if (hero.complete && hero.naturalWidth) animate();
+  else hero.onload = animate;
+
+  /* ── iframe 생성 (완전 투명) ── */
+  const iframe = document.createElement('iframe');
+  iframe.src = `viewer.html?idx=${idx}`;
+  iframe.style.cssText = `
+    position: fixed; inset: 0; width: 100%; height: 100dvh;
+    border: none; z-index: 202;
+    opacity: 0;
+    pointer-events: none;
+  `;
+  document.body.appendChild(iframe);
+  _viewerIframe = iframe;
+
+  /* ── iframe 로드 완료 → hero와 크로스페이드 (깜박임 방지) ── */
+  iframe.onload = () => {
+    iframe.style.transition    = 'opacity 0.15s ease';
+    iframe.style.opacity       = '1';
+    iframe.style.pointerEvents = 'all';
+    setTimeout(() => {
+      backdrop.remove();
+      hero.remove();
+    }, 160);
+    history.pushState({ viewer: true }, '', `viewer.html?idx=${idx}`);
+  };
+
+  /* ── 닫기 — 썸네일로 줌아웃 ── */
+  const onPop = (e) => {
+    if (e.data?.type !== 'ROUTER_POP') return;
+    window.removeEventListener('message', onPop);
+
+    const iframe = _viewerIframe;
+    if (!iframe) { history.back(); return; }
+
+    // 스와이프 후 달라진 idx 파악
+    let currentIdx = idx;
+    try {
+      const url = new URL(iframe.contentWindow.location.href);
+      currentIdx = parseInt(url.searchParams.get('idx') ?? idx) || idx;
+    } catch (_) {}
+    const currentPhoto = allPhotos[currentIdx] ?? photo;
+
+    const closeHero = document.createElement('img');
+    closeHero.src = currentPhoto.file_path || '';
+
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+
+    // 닫기 시작: viewer 내 사진 위치 (width 100%, 세로 중앙)
+    const calcStart = () => {
+      const nw = closeHero.naturalWidth  || vw;
+      const nh = closeHero.naturalHeight || vh;
+      const h  = (nh / nw) * vw;
+      return { left: 0, top: (vh - h) / 2, width: vw, height: h };
+    };
+    const s = calcStart();
+
+    closeHero.style.cssText = `
+      position: fixed; z-index: 203;
+      object-fit: contain;
+      border-radius: 0px;
+      left: ${s.left}px; top: ${s.top}px;
+      width: ${s.width}px; height: ${s.height}px;
+      transition: left 0.28s cubic-bezier(0.4,0,0.2,1),
+                  top    0.28s cubic-bezier(0.4,0,0.2,1),
+                  width  0.28s cubic-bezier(0.4,0,0.2,1),
+                  height 0.28s cubic-bezier(0.4,0,0.2,1),
+                  border-radius 0.28s ease,
+                  opacity 0.28s ease;
+      will-change: left, top, width, height;
+    `;
+
+    const closeBackdrop = document.createElement('div');
+    closeBackdrop.style.cssText = `
+      position: fixed; inset: 0; z-index: 202;
+      background: #0a0704;
+      transition: opacity 0.28s ease;
+    `;
+
+    document.body.appendChild(closeBackdrop);
+    document.body.appendChild(closeHero);
+    iframe.style.opacity = '0';
+
+    // 돌아갈 썸네일 위치
+    const freshThumb =
+      document.querySelector(`.gallery-item[data-idx="${currentIdx}"] img`)
+      ?? document.querySelector(`.gallery-item[data-idx="${idx}"] img`);
+    const backRect = freshThumb?.getBoundingClientRect() ?? thumbRect;
+
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      closeBackdrop.style.opacity  = '0';
+      closeHero.style.left         = backRect.left   + 'px';
+      closeHero.style.top          = backRect.top    + 'px';
+      closeHero.style.width        = backRect.width  + 'px';
+      closeHero.style.height       = backRect.height + 'px';
+      closeHero.style.borderRadius = '6px';
+      closeHero.style.objectFit    = 'cover';
+      closeHero.style.opacity      = '0';
+    }));
+
+    setTimeout(() => {
+      closeHero.remove();
+      closeBackdrop.remove();
+      iframe.remove();
+      _viewerIframe = null;
+    }, 300);
+
+    history.back();
+  };
+
+  window.addEventListener('message', onPop);
 }
 
 function _updateViewer(idx) {
@@ -721,7 +823,7 @@ async function handleFiles(files) {
 
   const newPhotos = results.filter(Boolean);
   if (newPhotos.length > 0) {
-    allPhotos = [...allPhotos, ...newPhotos];
+    allPhotos = [...newPhotos, ...allPhotos];
     renderGalleryGrid();
     showToast(`${newPhotos.length}장 추가됐어요!`);
   }
@@ -780,7 +882,12 @@ function updateUploadItem(name, status, pct) {
         <div class="ufi-pct"  id="ufi-pct-${CSS.escape(name)}"></div>
         <div class="ufi-icon" id="ufi-icon-${CSS.escape(name)}"></div>
       </div>`;
-    document.getElementById('uploadFileList').appendChild(el);
+
+    const list = document.getElementById('uploadFileList');
+
+    // 제일 앞에 추가
+    list.prepend(el);
+
     uploadItems[name] = el;
   }
 
@@ -927,9 +1034,6 @@ async function loadAll() {
     console.error(e);
   }
 }
-
-/* ── 뒤로가기 ── */
-function goBack() { Router.pop(); }
 
 /* ── 초기 실행 ── */
 loadAll();
