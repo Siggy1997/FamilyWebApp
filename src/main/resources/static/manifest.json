@@ -2,7 +2,7 @@
   "name": "단어시험",
   "short_name": "단어시험",
   "description": "영어 단어 시험 앱",
-  "start_url": "/testForm",
+  "start_url": "/",
   "display": "standalone",
   "background_color": "#f5f0eb",
   "theme_color": "#8B2020",

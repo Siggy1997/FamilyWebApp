@@ -61,7 +61,7 @@ public class PhotoService extends BaseController{
 	    }
 
 	    // 3️⃣ DB에 저장할 상대 경로
-	    String webPath = urlPrefix + "/trips/" + tripId + "/" + savedName;
+	    String webPath = urlPrefix + "/family/" + tripId + "/" + savedName;
 
 	    // 4️⃣ 파일 정보
 	    long sizeBytes = file.getSize();
