@@ -1,5 +1,5 @@
 console.log
-const API = (() => {
+const API = (() => { 
 	const BASE_URL = '/api'; 
 
 	async function request(method, path, body = null) {
