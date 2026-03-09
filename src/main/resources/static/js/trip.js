@@ -920,5 +920,5 @@ function goBack() { Router.pop(); }
 
 /* ── 초기 실행 ── */
 loadAll();
-console.log("FIXED");
+console.log("FIXED")
 requestAnimationFrame(initIndicator);
