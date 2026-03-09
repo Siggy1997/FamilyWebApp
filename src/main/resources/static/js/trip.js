@@ -1,7 +1,5 @@
 /* ═══════════════════════════════════════════════════════
    탭 전환
-   — 하이라이트 / 사진 / 동영상 / 일정 탭 간 전환 처리
-   — 탭 하단 인디케이터(밑줄) 위치·너비 애니메이션
 ═══════════════════════════════════════════════════════ */
 let currentTab = 'highlight';
 
@@ -22,7 +20,6 @@ function capitalize(s) {
   return s.charAt(0).toUpperCase() + s.slice(1);
 }
 
-// 클릭된 탭 버튼 위치에 맞게 인디케이터 이동
 function moveIndicator(btnEl) {
   const ind     = document.getElementById('tabIndicator');
   const bar     = document.getElementById('tabBar');
@@ -33,7 +30,6 @@ function moveIndicator(btnEl) {
   ind.style.width = (btnRect.width - pad * 2) + 'px';
 }
 
-// 페이지 진입 시 첫 번째 탭(하이라이트)에 인디케이터 초기 위치 설정
 function initIndicator() {
   const firstBtn = document.querySelector('.tab-btn.active');
   if (firstBtn) moveIndicator(firstBtn);
@@ -42,8 +38,6 @@ function initIndicator() {
 
 /* ═══════════════════════════════════════════════════════
    페이지 초기화
-   — URL 쿼리스트링에서 trip id 추출
-   — tripData: 로드 후 여행 정보를 캐싱해두는 전역 변수
 ═══════════════════════════════════════════════════════ */
 const tripId = (() => {
   const p = new URLSearchParams(location.search);
@@ -56,15 +50,12 @@ let tripData = null;
 /* ═══════════════════════════════════════════════════════
    날짜 / 시간 포맷 유틸
 ═══════════════════════════════════════════════════════ */
-
-// KST 기준 'YYYY.MM.DD' 포맷
 function fmtDate(str) {
   if (!str) return '';
   const kst = new Date(str);
   return kst.toISOString().slice(0, 10).replace(/-/g, '.');
 }
 
-// 시작일~종료일 범위 문자열 반환 (같은 날이면 단일 날짜만)
 function fmtRange(s, e) {
   if (!s) return '';
   const sd = fmtDate(s);
@@ -72,7 +63,6 @@ function fmtRange(s, e) {
   return ed && ed !== sd ? `${sd} — ${ed}` : sd;
 }
 
-// 초(sec) → 'N분 N초' 형태로 변환
 function fmtDuration(sec) {
   if (!sec) return '';
   const m = Math.floor(sec / 60);
@@ -83,7 +73,6 @@ function fmtDuration(sec) {
 
 /* ═══════════════════════════════════════════════════════
    스켈레톤 UI
-   — 데이터 로드 전 플레이스홀더를 보여줘 빈 화면 방지
 ═══════════════════════════════════════════════════════ */
 function showSkeleton() {
   document.getElementById('navTitle').textContent = '불러오는 중…';
@@ -100,13 +89,11 @@ function showSkeleton() {
 
 /* ═══════════════════════════════════════════════════════
    여행 기본 정보 렌더링
-   — 네비게이션 타이틀, 히어로 영역, 위치/날짜/사진 수 칩
 ═══════════════════════════════════════════════════════ */
 function renderInfo(trip) {
   document.getElementById('navTitle').textContent = trip.title;
   document.title = `${trip.title} — memories.`;
 
-  // 히어로 영역: 대표 이미지가 없을 경우 플레이스홀더 아이콘
   document.getElementById('tripHero').innerHTML =
     `<div class="trip-hero-ph">
        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
@@ -155,7 +142,6 @@ function renderInfo(trip) {
 
 /* ═══════════════════════════════════════════════════════
    하이라이트 렌더링
-   — 하이라이트 영상이 있으면 썸네일 카드, 없으면 빈 상태 표시
 ═══════════════════════════════════════════════════════ */
 function renderHighlight(highlights) {
   const sec = document.getElementById('sectionHighlight');
@@ -192,10 +178,7 @@ function renderHighlight(highlights) {
 
 
 /* ═══════════════════════════════════════════════════════
-   갤러리 — 상태 변수
-   — allPhotos:   전체 사진 목록 (서버에서 받은 원본 배열)
-   — selectMode:  선택 모드 활성 여부
-   — selectedIds: 현재 선택된 사진 id Set
+   갤러리 상태 변수
 ═══════════════════════════════════════════════════════ */
 let allPhotos   = [];
 let selectMode  = false;
@@ -204,8 +187,6 @@ let selectedIds = new Set();
 
 /* ═══════════════════════════════════════════════════════
    갤러리 탭 렌더링
-   — 헤더(사진 수 + 추가 버튼) 그리기
-   — 사진이 없으면 빈 상태, 있으면 그리드 렌더링
 ═══════════════════════════════════════════════════════ */
 function renderGallery(photos) {
   allPhotos = photos ?? [];
@@ -243,10 +224,7 @@ function renderGallery(photos) {
 
 
 /* ═══════════════════════════════════════════════════════
-   갤러리 그리드 — 가상 렌더링 (Lazy Load + 무한스크롤)
-   — BATCH_SIZE씩 DOM에 추가해 초기 렌더 부담 최소화
-   — imgObserver: 뷰포트 진입 시 이미지 src 교체 (lazy load)
-   — scrollObserver: sentinel이 보이면 다음 배치 추가
+   갤러리 그리드 — Lazy Load + 무한스크롤
 ═══════════════════════════════════════════════════════ */
 const BATCH_SIZE    = 12;
 let   renderedCount = 0;
@@ -256,7 +234,6 @@ let   sentinel      = null;
 function renderGalleryGrid() {
   const sec = document.getElementById('sectionGallery');
 
-  // 기존 그리드·빈 상태·sentinel 제거 후 재구성
   sec.querySelector('.gallery-grid')?.remove();
   sec.querySelector('.gallery-empty')?.remove();
   sec.querySelector('.gallery-sentinel')?.remove();
@@ -282,12 +259,10 @@ function renderGalleryGrid() {
   grid.id = 'galleryGrid';
   sec.appendChild(grid);
 
-  // 무한스크롤 트리거용 sentinel (그리드 맨 아래 위치)
   sentinel = document.createElement('div');
   sentinel.className = 'gallery-sentinel';
   sec.appendChild(sentinel);
 
-  // 이미지 lazy load: 뷰포트 200px 전방 진입 시 src 지정
   imgObserver = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
       if (!entry.isIntersecting) return;
@@ -301,7 +276,6 @@ function renderGalleryGrid() {
     });
   }, { rootMargin: '200px' });
 
-  // sentinel이 뷰포트 300px 전방에 들어오면 다음 배치 렌더
   const scrollObserver = new IntersectionObserver((entries) => {
     if (entries[0].isIntersecting) appendBatch();
   }, { rootMargin: '300px' });
@@ -313,7 +287,6 @@ function renderGalleryGrid() {
   if (countEl) countEl.textContent = allPhotos.length + '장';
 }
 
-// 다음 BATCH_SIZE 장의 사진 아이템을 그리드에 추가
 function appendBatch() {
   const grid  = document.getElementById('galleryGrid');
   if (!grid) return;
@@ -367,11 +340,7 @@ function appendBatch() {
 
 
 /* ═══════════════════════════════════════════════════════
-   터치 인터랙션 — 롱프레스 / 탭 / 스크롤 중 탭 방지
-   — scrollWrap에서 전역으로 스크롤 여부를 추적해
-     선택 모드일 때 스크롤 후 손가락을 떼는 순간
-     탭으로 잘못 인식되는 것을 방지
-   — attachLongPress는 common.js 구현체 사용
+   터치 인터랙션
 ═══════════════════════════════════════════════════════ */
 let _isScrolling = false;
 
@@ -381,7 +350,6 @@ let _isScrolling = false;
     if (!wrap) return;
     wrap.addEventListener('touchstart', () => { _isScrolling = false; }, { passive: true });
     wrap.addEventListener('touchmove',  () => { _isScrolling = true;  }, { passive: true });
-    // touchend와 onTap 콜백이 거의 동시 실행되므로 50ms 후 리셋
     wrap.addEventListener('touchend',   () => {
       setTimeout(() => { _isScrolling = false; }, 50);
     }, { passive: true });
@@ -393,23 +361,21 @@ let _isScrolling = false;
   }
 })();
 
-// 각 갤러리 아이템에 롱프레스·탭 이벤트 등록
 function attachPhotoLongPress(el, photoId, idx) {
   attachLongPress(el, {
     ms: 420,
     onLongPress: () => {
       if (!selectMode) enterSelectMode();
       toggleSelect(photoId);
-      navigator.vibrate?.(30); // 햅틱 피드백 (지원 기기)
+      navigator.vibrate?.(30);
     },
     onTap: () => {
-      if (selectMode && _isScrolling) return; // 스크롤 중 탭 무시
+      if (selectMode && _isScrolling) return;
       onPhotoTap(photoId, idx);
     },
   });
 }
 
-// 탭 처리: 선택 모드면 선택 토글, 일반 모드면 사진 뷰어 열기
 function onPhotoTap(id, idx) {
   if (selectMode) {
     toggleSelect(id);
@@ -421,22 +387,14 @@ function onPhotoTap(id, idx) {
 
 /* ═══════════════════════════════════════════════════════
    선택 모드
-   — 롱프레스로 진입, 헤더·하단 액션 바 전환
-   — toggleSelect: 개별 사진 선택/해제 + UI 동기화
-   — updateSelectUI: 카운트 텍스트 및 버튼 활성화 상태 갱신
 ═══════════════════════════════════════════════════════ */
 function enterSelectMode() {
   selectMode = true;
   selectedIds.clear();
   document.getElementById('sectionGallery').classList.add('select-mode');
-
-  // 헤더: 뒤로가기 숨기고 '취소'만 표시
   document.getElementById('btnBack').style.visibility = 'hidden';
   document.getElementById('btnSelectCancel').style.display = 'flex';
-
-  // 하단 액션 바 슬라이드 업
   document.getElementById('selectActionBar').classList.add('show');
-
   updateSelectUI();
 }
 
@@ -444,18 +402,12 @@ function cancelSelect() {
   selectMode = false;
   selectedIds.clear();
   document.getElementById('sectionGallery').classList.remove('select-mode');
-
-  // 헤더 원복
   document.getElementById('btnBack').style.visibility = '';
   document.getElementById('btnSelectCancel').style.display = 'none';
   document.getElementById('navTitle').textContent = tripData?.title ?? '';
-
-  // 하단 액션 바 닫기
   document.getElementById('selectActionBar').classList.remove('show');
-
   document.querySelectorAll('.gallery-item.selected')
     .forEach(el => el.classList.remove('selected'));
-
   updateSelectUI();
 }
 
@@ -472,19 +424,15 @@ function toggleSelect(id) {
 
 function updateSelectUI() {
   const cnt = selectedIds.size;
-
-  // 하단 바 카운트 텍스트
   const countEl = document.getElementById('selectActionCount');
   if (countEl) countEl.textContent = `${cnt}개 선택`;
 
-  // 선택 0개일 때 삭제·다운로드 버튼 비활성화
   const btnDelete   = document.querySelector('.select-action-btn--delete');
   const btnDownload = document.querySelector('.select-action-btn--download');
   const disabled    = cnt === 0;
   if (btnDelete)   { btnDelete.style.opacity   = disabled ? '0.35' : '1'; btnDelete.disabled   = disabled; }
   if (btnDownload) { btnDownload.style.opacity = disabled ? '0.35' : '1'; btnDownload.disabled = disabled; }
 
-  // 헤더 타이틀: 선택 중이면 'N장 선택', 없으면 '선택'
   const title = document.getElementById('navTitle');
   if (selectMode && title) {
     title.textContent = cnt > 0 ? `${cnt}장 선택` : '선택';
@@ -493,23 +441,166 @@ function updateSelectUI() {
 
 
 /* ═══════════════════════════════════════════════════════
-   선택 모드 액션 — 저장 / 삭제
-
-   iOS PWA 제약:
-   - <a download> → 파일 앱으로 저장됨 (갤러리 불가)
-   - Web Share API → '사진에 저장' 으로 갤러리 저장 가능
-   - 단, iOS는 share() 호출이 터치 이벤트와 동기적으로
-     연결돼야 함. await fetch() 후 share() 하면 제스처
-     컨텍스트가 끊겨서 실패함.
-
-   해결: fetch를 먼저 다 끝낸 뒤 share를 호출하되,
-   share() 자체는 버튼 탭 → 한 틱 안에 실행되도록
-   fetch를 최대한 빠르게 처리하거나,
-   1장씩 순차 share (각각 별도 탭 이벤트 없이는 한계 있음)
-   → 현실적으로 iOS는 1장씩 share 하는 게 가장 안정적.
+   사진 뷰어 — 전체화면 오버레이
+   iOS에서 이미지 꾹 누르기 → "사진에 추가" 로 저장 가능
+   상단 공유 버튼 → Web Share API로 공유 시트 열기
 ═══════════════════════════════════════════════════════ */
+let viewerIdx = 0;
 
-// URL → Blob → File 변환 헬퍼
+function openPhoto(idx) {
+  viewerIdx = idx;
+  const photo = allPhotos[idx];
+  if (!photo) return;
+
+  // 뷰어 오버레이가 없으면 생성
+  let viewer = document.getElementById('photoViewer');
+  if (!viewer) {
+    viewer = document.createElement('div');
+    viewer.id = 'photoViewer';
+    viewer.style.cssText = `
+      position: fixed; inset: 0; z-index: 100;
+      background: #000;
+      display: flex; flex-direction: column;
+      opacity: 0; transition: opacity 0.2s;
+    `;
+    viewer.innerHTML = `
+      <div id="viewerNav" style="
+        position: absolute; top: 0; left: 0; right: 0;
+        padding: env(safe-area-inset-top, 16px) 16px 12px;
+        display: flex; align-items: center; justify-content: space-between;
+        background: linear-gradient(to bottom, rgba(0,0,0,0.6), transparent);
+        z-index: 2;
+      ">
+        <button onclick="closePhoto()" style="
+          background: none; border: none; color: #fff;
+          font-size: 16px; padding: 8px; cursor: pointer;
+          display: flex; align-items: center; gap: 6px;
+        ">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="22" height="22">
+            <polyline points="15 18 9 12 15 6"/>
+          </svg>
+        </button>
+        <span id="viewerCount" style="color:#fff; font-size:14px; opacity:0.8;"></span>
+        <button id="viewerShareBtn" onclick="shareCurrentPhoto()" style="
+          background: none; border: none; color: #fff;
+          padding: 8px; cursor: pointer;
+        ">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" width="22" height="22">
+            <path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/>
+            <polyline points="16 6 12 2 8 6"/>
+            <line x1="12" y1="2" x2="12" y2="15"/>
+          </svg>
+        </button>
+      </div>
+
+      <div id="viewerImgWrap" style="
+        flex: 1; display: flex; align-items: center; justify-content: center;
+        overflow: hidden; position: relative;
+      ">
+        <img id="viewerImg" style="
+          max-width: 100%; max-height: 100%;
+          object-fit: contain;
+          user-select: none; -webkit-user-select: none;
+          -webkit-touch-callout: default;
+        " alt="">
+      </div>
+
+      <div id="viewerHint" style="
+        position: absolute; bottom: calc(env(safe-area-inset-bottom, 16px) + 16px);
+        left: 0; right: 0; text-align: center;
+        color: rgba(255,255,255,0.5); font-size: 12px;
+      ">이미지를 꾹 누르면 사진 앱에 저장할 수 있어요</div>
+    `;
+
+    // 스와이프로 이전/다음 사진
+    let touchStartX = 0;
+    viewer.addEventListener('touchstart', e => {
+      touchStartX = e.touches[0].clientX;
+    }, { passive: true });
+    viewer.addEventListener('touchend', e => {
+      const dx = e.changedTouches[0].clientX - touchStartX;
+      if (Math.abs(dx) > 60) {
+        if (dx < 0) viewerNext();
+        else viewerPrev();
+      }
+    }, { passive: true });
+
+    document.body.appendChild(viewer);
+  }
+
+  _updateViewer(idx);
+
+  // 페이드인
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    viewer.style.opacity = '1';
+  }));
+
+  // 스크롤 잠금
+  document.body.style.overflow = 'hidden';
+}
+
+function _updateViewer(idx) {
+  const photo = allPhotos[idx];
+  if (!photo) return;
+  viewerIdx = idx;
+
+  document.getElementById('viewerImg').src = photo.file_path || '';
+  document.getElementById('viewerCount').textContent = `${idx + 1} / ${allPhotos.length}`;
+}
+
+function viewerPrev() {
+  if (viewerIdx > 0) _updateViewer(viewerIdx - 1);
+}
+
+function viewerNext() {
+  if (viewerIdx < allPhotos.length - 1) _updateViewer(viewerIdx + 1);
+}
+
+function closePhoto() {
+  const viewer = document.getElementById('photoViewer');
+  if (!viewer) return;
+  viewer.style.opacity = '0';
+  setTimeout(() => viewer.remove(), 200);
+  document.body.style.overflow = '';
+}
+
+/* ── 뷰어에서 공유 버튼 탭 → Web Share API ── */
+async function shareCurrentPhoto() {
+  const photo = allPhotos[viewerIdx];
+  if (!photo?.file_path) return;
+
+  // Web Share API 미지원 환경
+  if (!navigator.share) {
+    showToast('이 기기에서는 공유가 지원되지 않아요.');
+    return;
+  }
+
+  try {
+    showToast('준비 중…');
+    const filename = photo.file_path.split('/').pop() || `photo.jpg`;
+    const res  = await fetch(photo.file_path, { mode: 'cors' });
+    const blob = await res.blob();
+    const file = new File([blob], filename, { type: blob.type || 'image/jpeg' });
+
+    if (navigator.canShare?.({ files: [file] })) {
+      // 파일 공유 지원 → 공유 시트에서 "사진에 저장" 가능
+      await navigator.share({ files: [file] });
+    } else {
+      // 파일 공유 미지원 → URL 공유 fallback
+      await navigator.share({ url: photo.file_path });
+    }
+  } catch (e) {
+    if (e.name !== 'AbortError') {
+      showToast('공유에 실패했어요.');
+      console.error(e);
+    }
+  }
+}
+
+
+/* ═══════════════════════════════════════════════════════
+   선택 모드 저장 — Web Share API (여러 장)
+═══════════════════════════════════════════════════════ */
 async function fetchAsFile(url, filename) {
   const res  = await fetch(url, { mode: 'cors' });
   const blob = await res.blob();
@@ -527,7 +618,6 @@ async function downloadSelected() {
                      && typeof navigator.canShare === 'function';
 
   if (!canShareFiles) {
-    // 데스크톱 등 미지원 환경 → <a download> fallback
     targets.forEach((p, i) => {
       setTimeout(() => {
         const a    = document.createElement('a');
@@ -541,53 +631,45 @@ async function downloadSelected() {
     return;
   }
 
-  // iOS: 1장씩 순차적으로 share
-  // 여러 장을 한 번에 share하면 제스처 컨텍스트 문제로 실패하는 경우가 있음
+  showToast('사진 불러오는 중…');
+
+  // 모든 파일 병렬 fetch
+  const files = (await Promise.all(
+    targets.map(async (p) => {
+      try {
+        const filename = p.file_path.split('/').pop() || `photo_${p.id}.jpg`;
+        return await fetchAsFile(p.file_path, filename);
+      } catch (e) {
+        console.error('fetch 실패:', e);
+        return null;
+      }
+    })
+  )).filter(Boolean);
+
+  if (files.length === 0) { showToast('사진을 불러오지 못했어요.'); return; }
+  if (!navigator.canShare({ files })) { showToast('이 기기에서는 지원되지 않아요.'); return; }
+
   cancelSelect();
-  showToast('저장 준비 중…');
 
-  let savedCount = 0;
-
-  for (const p of targets) {
-    try {
-      const filename = p.file_path.split('/').pop() || `photo_${p.id}.jpg`;
-      const file     = await fetchAsFile(p.file_path, filename);
-
-      if (!navigator.canShare({ files: [file] })) {
-        throw new Error('canShare rejected');
-      }
-
-      await navigator.share({ files: [file] });
-      savedCount++;
-
-    } catch (e) {
-      if (e.name === 'AbortError') {
-        // 사용자가 공유 시트 닫음 → 나머지도 중단
-        break;
-      }
-      console.error('share 실패:', e);
-      showToast('일부 사진 저장에 실패했어요.');
+  try {
+    // 여러 장 한 번에 share → 공유 시트에서 "사진에 저장" 탭
+    await navigator.share({ files });
+  } catch (e) {
+    if (e.name !== 'AbortError') {
+      showToast('저장에 실패했어요.');
+      console.error(e);
     }
-  }
-
-  if (savedCount > 0) {
-    showToast(`${savedCount}장을 갤러리에 저장했어요`);
   }
 }
 
-// 선택된 사진 삭제 (API 연동 TODO)
 function deleteSelected() {
   if (selectedIds.size === 0) return;
-  const cnt = selectedIds.size;
-  showToast(`${cnt}장 삭제 준비 중`);
+  showToast(`${selectedIds.size}장 삭제 준비 중`);
 }
 
 
 /* ═══════════════════════════════════════════════════════
    사진 업로드
-   — 파일 인풋 트리거 → XHR로 한 장씩 순차 업로드
-   — 업로드 진행 시트(progress sheet)에 실시간 상태 표시
-   — 완료 후 allPhotos에 추가하고 그리드 재렌더
 ═══════════════════════════════════════════════════════ */
 function triggerUpload() {
   document.getElementById('fileInput').click();
@@ -635,12 +717,10 @@ async function handleFiles(files) {
   document.getElementById('fileInput').value = '';
 }
 
-// XHR로 사진 1장 업로드, onProgress 콜백으로 진행률 전달
 async function uploadPhoto(formData, onProgress) {
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
     xhr.open('POST', 'api/photo/upload');
-
     xhr.upload.onprogress = (e) => {
       if (e.lengthComputable) onProgress(Math.round(e.loaded / e.total * 100));
     };
@@ -657,7 +737,6 @@ async function uploadPhoto(formData, onProgress) {
   });
 }
 
-// 업로드 진행 시트 UI 제어
 let uploadItems = {};
 
 function showUploadSheet(total) {
@@ -677,7 +756,6 @@ function updateUploadProgress(done, total) {
   document.getElementById('uploadFill').style.width  = `${Math.round(done / total * 100)}%`;
 }
 
-// 파일별 행(uploading / done / fail) 상태 업데이트
 function updateUploadItem(name, status, pct) {
   let el = uploadItems[name];
   if (!el) {
@@ -714,7 +792,6 @@ function updateUploadItem(name, status, pct) {
 
 /* ═══════════════════════════════════════════════════════
    동영상 탭 렌더링
-   — 썸네일 + 파일명 + 재생 시간 목록 표시
 ═══════════════════════════════════════════════════════ */
 function renderVideos(videos) {
   const sec   = document.getElementById('sectionVideos');
@@ -755,7 +832,6 @@ function renderVideos(videos) {
 
 /* ═══════════════════════════════════════════════════════
    일정 탭 렌더링
-   — Day 단위로 그룹핑 후 타임라인 형태로 출력
 ═══════════════════════════════════════════════════════ */
 function renderSchedules(schedules) {
   const sec = document.getElementById('sectionSchedule');
@@ -775,7 +851,6 @@ function renderSchedules(schedules) {
     return;
   }
 
-  // day 값 기준으로 그룹핑
   const days = {};
   schedules.forEach(s => {
     const key = s.day ?? '—';
@@ -804,17 +879,14 @@ function renderSchedules(schedules) {
 
 
 /* ═══════════════════════════════════════════════════════
-   플레이어 핸들러 (추후 구현)
+   플레이어 핸들러
 ═══════════════════════════════════════════════════════ */
 function playHighlight(id) { showToast('하이라이트 재생 준비 중'); }
-function openPhoto(idx)    { showToast('사진 뷰어 준비 중'); }
 function playVideo(id)     { showToast('동영상 재생 준비 중'); }
 
 
 /* ═══════════════════════════════════════════════════════
    데이터 로드
-   — 여행 정보 / 사진 / 동영상 / 일정 / 하이라이트를
-     Promise.all로 병렬 요청해 렌더링
 ═══════════════════════════════════════════════════════ */
 async function loadAll() {
   if (!tripId) { showToast('여행 정보를 찾을 수 없어요.'); return; }
@@ -826,6 +898,8 @@ async function loadAll() {
       TripsAPI.trips.detail({ id: tripId }),
       TripsAPI.photos.list({ trip_id: tripId }),
       TripsAPI.videos.list({ trip_id: tripId }),
+/*      TripsAPI.schedules.list({ trip_id: tripId }),
+      TripsAPI.highlights.list({ trip_id: tripId }),*/
     ]);
 
     tripData = trip;
@@ -846,4 +920,5 @@ function goBack() { Router.pop(); }
 
 /* ── 초기 실행 ── */
 loadAll();
+console.log("FIXED");
 requestAnimationFrame(initIndicator);
