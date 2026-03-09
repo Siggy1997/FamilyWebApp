@@ -184,6 +184,27 @@ let allPhotos   = [];
 let selectMode  = false;
 let selectedIds = new Set();
 
+/* ── Blob 캐시 ──
+   사진 선택 시 백그라운드에서 미리 fetch → File 객체로 저장
+   downloadSelected() 호출 시 await 없이 바로 share() 가능
+   → NotAllowedError(제스처 컨텍스트 끊김) 방지
+*/
+const blobCache = new Map(); // photoId → File
+
+async function prefetchBlob(photo) {
+  if (blobCache.has(photo.id) || !photo.file_path) return;
+  try {
+    const res  = await fetch(photo.file_path, { mode: 'cors' });
+    const blob = await res.blob();
+    const type = blob.type || 'image/jpeg';
+    const ext  = type.split('/')[1]?.split('+')[0] || 'jpg';
+    const name = photo.file_path.split('/').pop() || `photo_${photo.id}.${ext}`;
+    blobCache.set(photo.id, new File([blob], name, { type }));
+  } catch (e) {
+    console.warn('prefetch 실패:', photo.id, e);
+  }
+}
+
 
 /* ═══════════════════════════════════════════════════════
    갤러리 탭 렌더링
@@ -387,6 +408,7 @@ function onPhotoTap(id, idx) {
 
 /* ═══════════════════════════════════════════════════════
    선택 모드
+   toggleSelect 시 백그라운드 prefetch 시작
 ═══════════════════════════════════════════════════════ */
 function enterSelectMode() {
   selectMode = true;
@@ -416,6 +438,9 @@ function toggleSelect(id) {
     selectedIds.delete(id);
   } else {
     selectedIds.add(id);
+    // 선택 즉시 백그라운드에서 Blob 미리 fetch
+    const photo = allPhotos.find(p => p.id === id);
+    if (photo) prefetchBlob(photo);
   }
   const el = document.querySelector(`.gallery-item[data-id="${id}"]`);
   if (el) el.classList.toggle('selected', selectedIds.has(id));
@@ -442,8 +467,6 @@ function updateSelectUI() {
 
 /* ═══════════════════════════════════════════════════════
    사진 뷰어 — 전체화면 오버레이
-   iOS에서 이미지 꾹 누르기 → "사진에 추가" 로 저장 가능
-   상단 공유 버튼 → Web Share API로 공유 시트 열기
 ═══════════════════════════════════════════════════════ */
 let viewerIdx = 0;
 
@@ -452,7 +475,6 @@ function openPhoto(idx) {
   const photo = allPhotos[idx];
   if (!photo) return;
 
-  // 뷰어 오버레이가 없으면 생성
   let viewer = document.getElementById('photoViewer');
   if (!viewer) {
     viewer = document.createElement('div');
@@ -492,7 +514,6 @@ function openPhoto(idx) {
           </svg>
         </button>
       </div>
-
       <div id="viewerImgWrap" style="
         flex: 1; display: flex; align-items: center; justify-content: center;
         overflow: hidden; position: relative;
@@ -504,7 +525,6 @@ function openPhoto(idx) {
           -webkit-touch-callout: default;
         " alt="">
       </div>
-
       <div id="viewerHint" style="
         position: absolute; bottom: calc(env(safe-area-inset-bottom, 16px) + 16px);
         left: 0; right: 0; text-align: center;
@@ -512,7 +532,6 @@ function openPhoto(idx) {
       ">이미지를 꾹 누르면 사진 앱에 저장할 수 있어요</div>
     `;
 
-    // 스와이프로 이전/다음 사진
     let touchStartX = 0;
     viewer.addEventListener('touchstart', e => {
       touchStartX = e.touches[0].clientX;
@@ -529,13 +548,9 @@ function openPhoto(idx) {
   }
 
   _updateViewer(idx);
-
-  // 페이드인
   requestAnimationFrame(() => requestAnimationFrame(() => {
     viewer.style.opacity = '1';
   }));
-
-  // 스크롤 잠금
   document.body.style.overflow = 'hidden';
 }
 
@@ -543,9 +558,10 @@ function _updateViewer(idx) {
   const photo = allPhotos[idx];
   if (!photo) return;
   viewerIdx = idx;
-
   document.getElementById('viewerImg').src = photo.file_path || '';
   document.getElementById('viewerCount').textContent = `${idx + 1} / ${allPhotos.length}`;
+  // 뷰어에서 보는 사진도 미리 캐싱
+  prefetchBlob(photo);
 }
 
 function viewerPrev() {
@@ -564,29 +580,24 @@ function closePhoto() {
   document.body.style.overflow = '';
 }
 
-/* ── 뷰어에서 공유 버튼 탭 → Web Share API ── */
 async function shareCurrentPhoto() {
   const photo = allPhotos[viewerIdx];
   if (!photo?.file_path) return;
-
-  // Web Share API 미지원 환경
-  if (!navigator.share) {
-    showToast('이 기기에서는 공유가 지원되지 않아요.');
-    return;
-  }
+  if (!navigator.share) { showToast('이 기기에서는 공유가 지원되지 않아요.'); return; }
 
   try {
-    showToast('준비 중…');
-    const filename = photo.file_path.split('/').pop() || `photo.jpg`;
-    const res  = await fetch(photo.file_path, { mode: 'cors' });
-    const blob = await res.blob();
-    const file = new File([blob], filename, { type: blob.type || 'image/jpeg' });
+    // 캐시에 있으면 바로 share, 없으면 fetch 후 share
+    let file = blobCache.get(photo.id);
+    if (!file) {
+      showToast('준비 중…');
+      await prefetchBlob(photo);
+      file = blobCache.get(photo.id);
+    }
+    if (!file) { showToast('사진을 불러오지 못했어요.'); return; }
 
     if (navigator.canShare?.({ files: [file] })) {
-      // 파일 공유 지원 → 공유 시트에서 "사진에 저장" 가능
       await navigator.share({ files: [file] });
     } else {
-      // 파일 공유 미지원 → URL 공유 fallback
       await navigator.share({ url: photo.file_path });
     }
   } catch (e) {
@@ -599,16 +610,10 @@ async function shareCurrentPhoto() {
 
 
 /* ═══════════════════════════════════════════════════════
-   선택 모드 저장 — Web Share API (여러 장)
+   선택 모드 저장 — Web Share API
+   핵심: toggleSelect 시 이미 prefetch 완료 → share() 직전 await 없음
+   → 제스처 컨텍스트 유지 → NotAllowedError 방지
 ═══════════════════════════════════════════════════════ */
-async function fetchAsFile(url, filename) {
-  const res  = await fetch(url, { mode: 'cors' });
-  const blob = await res.blob();
-  const type = blob.type || 'image/jpeg';
-  const ext  = type.split('/')[1]?.split('+')[0] || 'jpg';
-  return new File([blob], filename || `photo.${ext}`, { type });
-}
-
 async function downloadSelected() {
   if (selectedIds.size === 0) return;
   const targets = allPhotos.filter(p => selectedIds.has(p.id) && p.file_path);
@@ -618,6 +623,7 @@ async function downloadSelected() {
                      && typeof navigator.canShare === 'function';
 
   if (!canShareFiles) {
+    // 데스크톱 fallback
     targets.forEach((p, i) => {
       setTimeout(() => {
         const a    = document.createElement('a');
@@ -631,28 +637,21 @@ async function downloadSelected() {
     return;
   }
 
-  showToast('사진 불러오는 중…');
+  // 캐시 미스된 파일만 추가 fetch (이미 선택 시 prefetch 완료된 것은 skip)
+  const missing = targets.filter(p => !blobCache.has(p.id));
+  if (missing.length > 0) {
+    showToast('준비 중…');
+    await Promise.all(missing.map(p => prefetchBlob(p)));
+  }
 
-  // 모든 파일 병렬 fetch
-  const files = (await Promise.all(
-    targets.map(async (p) => {
-      try {
-        const filename = p.file_path.split('/').pop() || `photo_${p.id}.jpg`;
-        return await fetchAsFile(p.file_path, filename);
-      } catch (e) {
-        console.error('fetch 실패:', e);
-        return null;
-      }
-    })
-  )).filter(Boolean);
-
+  const files = targets.map(p => blobCache.get(p.id)).filter(Boolean);
   if (files.length === 0) { showToast('사진을 불러오지 못했어요.'); return; }
   if (!navigator.canShare({ files })) { showToast('이 기기에서는 지원되지 않아요.'); return; }
 
   cancelSelect();
 
+  // 캐시된 파일로 바로 share → await fetch 없음 → 제스처 컨텍스트 유지
   try {
-    // 여러 장 한 번에 share → 공유 시트에서 "사진에 저장" 탭
     await navigator.share({ files });
   } catch (e) {
     if (e.name !== 'AbortError') {
@@ -920,5 +919,5 @@ function goBack() { Router.pop(); }
 
 /* ── 초기 실행 ── */
 loadAll();
-console.log("FIXED")
+console.log("FIXED");
 requestAnimationFrame(initIndicator);
