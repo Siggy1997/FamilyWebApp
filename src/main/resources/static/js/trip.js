@@ -438,13 +438,17 @@ function toggleSelect(id) {
     selectedIds.delete(id);
   } else {
     selectedIds.add(id);
-    // 선택 즉시 백그라운드에서 Blob 미리 fetch
+    // 선택 즉시 백그라운드 prefetch → 완료되면 버튼 상태 갱신
     const photo = allPhotos.find(p => p.id === id);
-    if (photo) prefetchBlob(photo);
+    if (photo) prefetchBlob(photo).then(() => updateSelectUI());
   }
   const el = document.querySelector(`.gallery-item[data-id="${id}"]`);
   if (el) el.classList.toggle('selected', selectedIds.has(id));
   updateSelectUI();
+}
+
+function _allCached() {
+  return [...selectedIds].every(id => blobCache.has(id));
 }
 
 function updateSelectUI() {
@@ -454,9 +458,25 @@ function updateSelectUI() {
 
   const btnDelete   = document.querySelector('.select-action-btn--delete');
   const btnDownload = document.querySelector('.select-action-btn--download');
-  const disabled    = cnt === 0;
-  if (btnDelete)   { btnDelete.style.opacity   = disabled ? '0.35' : '1'; btnDelete.disabled   = disabled; }
-  if (btnDownload) { btnDownload.style.opacity = disabled ? '0.35' : '1'; btnDownload.disabled = disabled; }
+
+  if (btnDelete) {
+    btnDelete.style.opacity = cnt === 0 ? '0.35' : '1';
+    btnDelete.disabled = cnt === 0;
+  }
+  if (btnDownload) {
+    if (cnt === 0) {
+      btnDownload.style.opacity = '0.35';
+      btnDownload.disabled = true;
+    } else if (!_allCached()) {
+      // 캐싱 중 → 비활성 (제스처 컨텍스트 보호)
+      btnDownload.style.opacity = '0.6';
+      btnDownload.disabled = true;
+    } else {
+      // 캐시 완료 → 활성
+      btnDownload.style.opacity = '1';
+      btnDownload.disabled = false;
+    }
+  }
 
   const title = document.getElementById('navTitle');
   if (selectMode && title) {
@@ -637,20 +657,14 @@ async function downloadSelected() {
     return;
   }
 
-  // 캐시 미스된 파일만 추가 fetch (이미 선택 시 prefetch 완료된 것은 skip)
-  const missing = targets.filter(p => !blobCache.has(p.id));
-  if (missing.length > 0) {
-    showToast('준비 중…');
-    await Promise.all(missing.map(p => prefetchBlob(p)));
-  }
-
+  // 캐시에서 바로 꺼냄 — await fetch 없음 → 제스처 컨텍스트 유지
+  // (버튼은 _allCached() 가 true일 때만 활성화되므로 여기선 항상 캐시 히트)
   const files = targets.map(p => blobCache.get(p.id)).filter(Boolean);
   if (files.length === 0) { showToast('사진을 불러오지 못했어요.'); return; }
   if (!navigator.canShare({ files })) { showToast('이 기기에서는 지원되지 않아요.'); return; }
 
   cancelSelect();
 
-  // 캐시된 파일로 바로 share → await fetch 없음 → 제스처 컨텍스트 유지
   try {
     await navigator.share({ files });
   } catch (e) {
