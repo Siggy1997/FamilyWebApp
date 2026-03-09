@@ -57,11 +57,10 @@ let tripData = null;
    날짜 / 시간 포맷 유틸
 ═══════════════════════════════════════════════════════ */
 
-// UTC 날짜 문자열 → KST 기준 'YYYY.MM.DD' 포맷
+// KST 기준 'YYYY.MM.DD' 포맷
 function fmtDate(str) {
   if (!str) return '';
-  const d   = new Date(str);
-  const kst = new Date(d.getTime() + 9 * 60 * 60 * 1000);
+  const kst = new Date(str);
   return kst.toISOString().slice(0, 10).replace(/-/g, '.');
 }
 

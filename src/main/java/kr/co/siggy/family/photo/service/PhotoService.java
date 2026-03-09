@@ -37,7 +37,7 @@ public class PhotoService extends BaseController{
 	public Map<String, Object> photoUpload(MultipartFile file, String tripId) {
 
 	    // 1️⃣ 저장 디렉토리 생성
-	    Path dir = Paths.get(storageRoot, "trips", tripId);
+	    Path dir = Paths.get(storageRoot, "family", tripId);
 	    try {
 	        Files.createDirectories(dir);
 	        logger.info("### Directory : {}", dir);

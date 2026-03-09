@@ -1,10 +1,6 @@
-/**
- * memories. — API Layer
- * 백엔드 BASE_URL만 바꾸면 실제 서버와 연동됩니다.
- */
 console.log
 const API = (() => {
-	const BASE_URL = 'http://172.16.200.194:8082/api'; // 예: 'http://raspberrypi.local:3000/api'
+	const BASE_URL = '/api'; 
 
 	async function request(method, path, body = null) {
 		const options = {
