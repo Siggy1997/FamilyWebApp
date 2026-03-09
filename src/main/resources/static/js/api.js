@@ -1,4 +1,3 @@
-console.log
 const API = (() => { 
 	const BASE_URL = '/api'; 
 
@@ -8,6 +7,7 @@ const API = (() => {
 			headers: { 'Content-Type': 'application/json' },
 		};
 		if (body) options.body = JSON.stringify(body);
+		console.log("HHH");
 		console.log("#### Request (path) : ", path);
 		console.log("#### Request (req): ", body);
 
