@@ -472,10 +472,18 @@
 .gallery-item img.loaded {
   opacity: 1;
 }
-/* 로드 완료되면 스켈레톤 숨김 */
-.gallery-item img.loaded ~ .img-skeleton,
+
+.img-skeleton {
+  position: absolute; inset: 0;
+  background: linear-gradient(90deg, var(--warm) 25%, var(--paper) 50%, var(--warm) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite;
+  transition: opacity 0.25s ease;   /* ← 추가 */
+  z-index: 1;
+}
 .gallery-item:has(img.loaded) .img-skeleton {
-  display: none;
+  opacity: 0;                        /* ← display:none 대신 fade out */
+  pointer-events: none;
 }
 
 /* 에러 */
@@ -509,7 +517,7 @@ body:has(.select-action-bar.show) .scroll-wrap {
     justify-content: space-between;
     padding: 12px 20px;
     padding-bottom: calc(12px + env(safe-area-inset-bottom));
-    background: #000000e0;
+    background: var(--ink-3);
     border-top: 1px solid rgba(0, 0, 0, 0.07);
     box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.06);
     transform: translateY(100%);
@@ -553,11 +561,11 @@ body:has(.select-action-bar.show) .scroll-wrap {
 }
 
 .select-action-btn--delete svg {
-  stroke: #1a73e8;
+  stroke: white;
 }
 
 .select-action-btn--download svg {
-  stroke: #1a73e8;
+  stroke: white;
 }
 
 /* 가운데 카운트 텍스트 */

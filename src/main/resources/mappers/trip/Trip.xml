@@ -3,6 +3,31 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="Trip">
+    <!-- ── 여행 그룹 정보 ── -->
+    <select id="grpInfo" parameterType="map" resultType="map">
+        SELECT
+        	id
+        	, name
+    	FROM
+    		groups
+		WHERE
+			id = #{group_id}
+    </select>
+
+    <!-- ── 여행 그룹 정보 ── -->
+    <select id="grpMember" parameterType="map" resultType="map">
+        SELECT
+        	id
+        	, login_id
+        	, name
+        	, role
+        	, avatar_path
+    	FROM
+    		members
+		WHERE
+			group_id = #{group_id}
+    </select>
+
     <!-- ── 전체 여행 목록 ── -->
     <select id="tripList" parameterType="map" resultType="map">
         SELECT
@@ -11,7 +36,7 @@
             t.location,
             t.started_at,
             t.ended_at,
-            t.cover_photo_id,
+            t.cover_photo_path,
             t.memo,
             t.created_at,
             COUNT(DISTINCT p.id) AS photo_count,
@@ -32,7 +57,7 @@
             t.location,
             t.started_at,
             t.ended_at,
-            t.cover_photo_id,
+            t.cover_photo_path,
             t.memo,
             t.created_at,
             COUNT(DISTINCT p.id) AS photo_count,
@@ -79,8 +104,8 @@
             <if test="ended_at != null">
                 ended_at = #{ended_at},
             </if>
-            <if test="cover_photo_id != null">
-                cover_photo_id = #{cover_photo_id},
+            <if test="cover_photo_path != null">
+                cover_photo_path = #{cover_photo_path},
             </if>
             <if test="memo != null">
                 memo = #{memo},

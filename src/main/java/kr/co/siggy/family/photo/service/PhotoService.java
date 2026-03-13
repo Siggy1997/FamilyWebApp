@@ -69,7 +69,7 @@ public class PhotoService extends BaseController{
 	    // 5️⃣ DB 저장
 	    Map<String, Object> param = new HashMap<>();
 	    param.put("trip_id", tripId);
-	    param.put("file_path", webPath);   // ⭐ 여기 수정
+	    param.put("file_path", webPath);
 	    param.put("file_name", savedName);
 	    param.put("taken_at", null);
 	    param.put("width", null);

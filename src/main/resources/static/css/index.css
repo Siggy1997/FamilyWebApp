@@ -16,18 +16,11 @@
   padding-top: var(--safe-top);
   padding-left: 22px; padding-right: 22px;
   display: flex; align-items: center;
-  background: rgba(245,239,230,0);
-  border-bottom: 1px solid transparent;
-  opacity: 0; pointer-events: none;
-  transition: opacity 0.28s ease, border-color 0.28s, box-shadow 0.28s, background 0.28s;
-  will-change: opacity;
-}
-.nav-bar.scrolled {
-  opacity: 1; pointer-events: all;
   background: rgba(245,239,230,0.92);
   backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
-  border-color: var(--border-2);
+  border-bottom: 1px solid var(--border-2);
   box-shadow: 0 1px 20px rgba(42,30,18,0.08);
+  transition: background 0.28s, box-shadow 0.28s;
 }
 .nav-logo {
   font-family: var(--font-display);
@@ -40,62 +33,55 @@
   flex: 1; overflow-y: auto; overflow-x: hidden;
   overscroll-behavior: none;
   -webkit-overflow-scrolling: touch;
+  margin-top: calc(var(--safe-top) + var(--header-h));
 }
 
-/* ── 빅 헤더 ── */
+/* ── 빅 헤더 ── *//* ── 빅 헤더 ── */
 .big-header {
-  padding: 24px 22px 0;
+  padding: 24px 22px 20px;
   position: relative; overflow: hidden;
 }
-.big-header::before {
-  content: ''; position: absolute; top: -70px; right: -70px;
-  width: 260px; height: 260px; border-radius: 50%;
-  background: radial-gradient(circle, rgba(196,144,96,0.13) 0%, transparent 68%);
-  pointer-events: none;
-}
 
-.greeting-eyebrow {
-  font-size: 11px; color: var(--accent-2); font-weight: 400;
-  letter-spacing: 0.05em;
+.bh-top {
+    position: absolute;
+    right: 10px;
+}
+.bh-label {
   display: flex; align-items: center; gap: 8px;
-  margin-bottom: 8px;
+  font-size: 11px; color: var(--accent-2);
+  font-weight: 500; letter-spacing: 0.06em;
 }
-.eyebrow-line { display: block; width: 20px; height: 1px; background: var(--accent-2); opacity: 0.7; }
+.eyebrow-line { display: block; width: 15px; height: 1px; background: var(--accent-2); opacity: 0.7;margin-left: 5px; }
 
-.greeting {
+.bh-profiles { display: flex; align-items: center; }
+.bh-profiles .profile-item {
+  flex-direction: row;                                                                                                                                                                                                                                                                                                                     
+  margin-left: -10px;
+}
+.bh-profiles .profile-item:first-child { margin-left: 0; }
+.bh-profiles .profile-avatar {
+    width: 42px;
+    height: 42px;
+    font-size: 16px;
+    border: 2.5px solid #ffffff;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #f2eadf;
+    box-shadow: 0 1px 6px rgba(42, 30, 18, 0.08);
+}
+.bh-profiles .active .profile-avatar { border: 2.5px solid #9a6b3a;}
+.bh-profiles .profile-name { display: none; }
+
+.bh-title {
   font-family: var(--font-display);
-  font-size: 34px; font-weight: 400;
-  color: var(--ink); line-height: 1.1; letter-spacing: -0.02em;
-  margin-bottom: 22px;
+  font-size: 36px; font-weight: 400;
+  color: var(--ink); line-height: 1.1;
+  letter-spacing: -0.02em; margin-bottom: 13px; margin-top: 22px;
 }
-.greeting em { font-style: italic; color: var(--accent); }
+.bh-title span { color: var(--accent);margin-left: 15px; margin-bottom: 15px; }
 
-/* ── 프로필 ── */
-.profiles-row {
-  display: flex; gap: 18px;
-  padding-bottom: 24px;
-  overflow-x: auto;
-}
-.profile-item {
-  display: flex; flex-direction: column;
-  align-items: center; gap: 6px; flex-shrink: 0;
-  cursor: pointer; -webkit-user-select: none; user-select: none;
-}
-.profile-item:active .profile-avatar { transform: scale(0.90); }
-.profile-avatar {
-  width: 54px; height: 54px; border-radius: 50%;
-  border: 2px solid var(--border-2);
-  background: var(--warm);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 23px; box-shadow: var(--shadow-sm);
-  transition: transform 0.15s var(--ease), border-color 0.2s, box-shadow 0.2s;
-}
-.profile-item.active .profile-avatar {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3.5px rgba(154,107,58,0.16);
-}
-.profile-name { font-size: 11px; color: var(--ink-3); font-weight: 400; }
-.profile-item.active .profile-name { color: var(--accent); font-weight: 600; }
 
 /* ── 구분선 ── */
 .header-divider {

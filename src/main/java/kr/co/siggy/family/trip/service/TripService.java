@@ -1,5 +1,6 @@
 package kr.co.siggy.family.trip.service;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -17,9 +18,17 @@ public class TripService extends BaseController{
 	@Autowired
 	private TripDao tripDao;
 	
-	/**
-	 * 여행
-	 */
+
+	public Map<String, Object> tripGroup(Map<String, Object> data) {
+		Map<String, Object> tripGrp = new HashMap<>();
+		Map<String, Object> grpInfo = tripDao.grpInfo(data);
+		List<Map<String, Object>> grpMember = tripDao.grpMember(data);
+		
+		tripGrp.put("grpInfo", grpInfo);
+		tripGrp.put("grpMember", grpMember);
+		return tripGrp;
+	}
+	
 	public List<Map<String, Object>> tripList(Map<String, Object> data) {
 		List<Map<String, Object>> tripList = tripDao.tripList(data);
 		return tripList;
@@ -33,18 +42,5 @@ public class TripService extends BaseController{
 	public void tripCreate(Map<String, Object> data) {
 		tripDao.tripCreate(data);
 	}
-
-	
-	/**
-	 * 사진
-	 */
-	public List<Map<String, Object>> photoList(Map<String, Object> data) {
-		List<Map<String, Object>> photoList = tripDao.photoList(data);
-		return null;
-	}
-
-
-	
-	
 	
 }

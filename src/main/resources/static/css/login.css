@@ -1,0 +1,144 @@
+/* ═══════════════════════════════
+   login.css — 로그인 페이지 전용
+   (공통 변수/리셋은 common.css 참조)
+═══════════════════════════════ */
+
+/* ── 배경 장식 ── */
+.bg-orb {
+  position: fixed; pointer-events: none; border-radius: 50%;
+  animation: drift 8s ease-in-out infinite alternate;
+}
+.bg-orb-1 {
+  width: 420px; height: 420px; top: -140px; right: -120px;
+  background: radial-gradient(circle, rgba(196,144,96,0.18) 0%, transparent 65%);
+  animation-delay: 0s;
+}
+.bg-orb-2 {
+  width: 320px; height: 320px; bottom: -80px; left: -100px;
+  background: radial-gradient(circle, rgba(154,107,58,0.12) 0%, transparent 65%);
+  animation-delay: -4s;
+}
+.bg-grain {
+  position: fixed; inset: 0; pointer-events: none; z-index: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+  background-size: 128px 128px; opacity: 0.5;
+}
+
+/* ── 페이지 레이아웃 ── */
+.page {
+  position: relative; z-index: 1;
+  min-height: 100dvh; overflow: auto;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 32px 24px;
+}
+
+/* ── 로고 ── */
+.logo-wrap {
+  text-align: center; margin-bottom: 36px;
+  animation: fadeUp 0.7s var(--ease) 0.05s both;
+}
+.logo-text {
+  font-family: var(--font-display);
+  font-size: 34px; font-style: italic; font-weight: 700;
+  color: var(--brown); letter-spacing: -0.01em; line-height: 1;
+  margin-bottom: 6px;
+}
+.logo-sub { font-size: 12px; color: var(--ink-3); font-weight: 300; letter-spacing: 0.05em; }
+
+/* ── 카드 ── */
+.card {
+  width: 100%; max-width: 380px;
+  background: rgba(250,246,240,0.88);
+  backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(196,144,96,0.22);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lg), 0 0 0 0.5px rgba(42,30,18,0.04) inset;
+  padding: 32px 28px 28px;
+  animation: fadeUp 0.7s var(--ease) 0.15s both;
+}
+.card-heading {
+  font-family: var(--font-display);
+  font-size: 22px; font-weight: 400; color: var(--ink);
+  margin-bottom: 4px; letter-spacing: -0.01em;
+}
+.card-heading em { font-style: italic; color: var(--accent); }
+.card-desc {
+  font-size: 13px; color: var(--ink-3); font-weight: 300;
+  margin-bottom: 26px; line-height: 1.5;
+}
+
+/* ── Input (아이콘 포함 래퍼) ── */
+.input-wrap { position: relative; margin-bottom: 11px;}
+.input-icon {
+  position: absolute; left: 13px; top: 50%; transform: translateY(-50%);
+  color: var(--ink-3); pointer-events: none;
+  display: flex; align-items: center; transition: color 0.18s;
+}
+.input-icon svg { width: 16px; height: 16px; }
+.input-wrap input { padding-left: 40px; }
+.input-wrap:focus-within .input-icon { color: var(--accent); }
+
+/* 비밀번호 토글 */
+.pw-toggle {
+  position: absolute; right: 13px; top: 50%; transform: translateY(-50%);
+  background: none; border: none; cursor: pointer;
+  color: var(--ink-3); padding: 4px;
+  display: flex; align-items: center; transition: color 0.15s;
+}
+.pw-toggle:hover { color: var(--accent); }
+.pw-toggle svg { width: 16px; height: 16px; }
+
+/* ── 링크 ── */
+.forgot-link {
+  font-size: 12px; color: var(--accent-2); font-weight: 400;
+  text-decoration: none; transition: color 0.15s;
+}
+.forgot-link:hover { color: var(--accent); }
+
+/* ── 구분선 ── */
+.divider { display: flex; align-items: center; gap: 10px; margin: 22px 0; }
+.divider-line { flex: 1; height: 1px; background: linear-gradient(90deg, transparent, var(--border-2) 50%, transparent); }
+.divider-text { font-size: 11px; color: var(--ink-3); font-weight: 300; letter-spacing: 0.04em; }
+
+/* ── 회원가입 링크 ── */
+.signup-row { text-align: center; font-size: 13px; color: var(--ink-3); font-weight: 300; }
+.signup-row a { color: var(--accent); font-weight: 600; text-decoration: none; transition: color 0.15s; }
+.signup-row a:hover { color: var(--brown); }
+
+/* ── 커스텀 체크박스 ── */
+.remember-row {
+  display: flex; align-items: center; gap: 5px;
+  cursor: pointer; -webkit-user-select: none; user-select: none;
+}
+.remember-row input[type=checkbox] { display: none; }
+.custom-check {
+  width: 18px; height: 18px; flex-shrink: 0;
+  border: 1.5px solid var(--border-2); border-radius: 5px;
+  background: var(--bg); display: flex; align-items: center; justify-content: center;
+  transition: border-color 0.18s, background 0.18s;
+}
+.remember-row input[type=checkbox]:checked + .custom-check { background: var(--brown); border-color: var(--brown); }
+.check-mark { width: 10px; height: 10px; opacity: 0; transition: opacity 0.15s; }
+.remember-row input[type=checkbox]:checked + .custom-check .check-mark { opacity: 1; }
+.remember-label { font-size: 13px; color: var(--ink-3); font-weight: 300; }
+
+/* ── 하단 데코 ── */
+.bottom-deco {
+  margin-top: 28px; margin-bottom: 50px; text-align: center;
+  animation: fadeUp 0.7s var(--ease) 0.4s both;
+}
+.deco-line {
+  display: inline-flex; align-items: center; gap: 10px;
+  font-size: 10px; color: var(--ink-3); letter-spacing: 0.08em; opacity: 0.6;
+}
+.deco-line span { display: block; width: 24px; height: 0.5px; background: var(--ink-3); }
+
+/* ── 로그인 전용 버튼 오버라이드 ── */
+/* common의 .btn-submit은 modal 안에서 쓰는 형태라 margin/width가 다름 */
+.card .btn-submit {
+  margin: 0; width: 100%;
+  background: var(--brown);
+  box-shadow: 0 4px 16px rgba(92,61,30,0.30);
+}
+.card .btn-submit:hover { background: var(--ink-2); box-shadow: 0 6px 22px rgba(92,61,30,0.38); }

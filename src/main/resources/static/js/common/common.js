@@ -16,6 +16,7 @@ function openModal(id) {
   document.getElementById(id).classList.add('show');
   document.getElementById('overlay').classList.add('show');
 }
+
 function closeModal(id) {
   const target = id
     ? document.getElementById(id)
@@ -162,7 +163,7 @@ function attachLongPress(el, { onLongPress, onTap, ms = 500 } = {}) {
     if (!didLongPress) onTap?.();
   });
 
-  /* 터치 취소 (전화 수신 등) */
+  /* 터치 취소  */
   el.addEventListener('touchcancel', () => {
     clearTimeout(timer);
     timer = null;
@@ -173,4 +174,43 @@ function attachLongPress(el, { onLongPress, onTap, ms = 500 } = {}) {
     e.preventDefault();
     onLongPress?.();
   });
+}
+
+
+function showLoading() {
+  const style = document.createElement('style');
+  style.textContent = `
+    #app-loading {
+      position: fixed; inset: 0; z-index: 99999;
+      background: #f5efe6;
+      display: flex; align-items: center; justify-content: center;
+      transition: opacity 1.4s ease;
+    }
+    #app-loading.hide {
+      opacity: 0; pointer-events: none;
+    }
+    .loading-logo {
+      font-family: Georgia, serif;
+      font-style: italic; font-size: 32px; font-weight: 700;
+      color: #5c3d1e; letter-spacing: -0.01em;
+      animation: loadingPulse 1.4s ease-in-out infinite;
+    }
+    @keyframes loadingPulse {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0.4; }
+    }
+  `;
+  document.head.appendChild(style);
+
+  const el = document.createElement('div');
+  el.id = 'app-loading';
+  el.innerHTML = '<div class="loading-logo">memories.</div>';
+  document.documentElement.appendChild(el);
+}
+
+function hideLoading() {
+	const el = document.getElementById('app-loading');
+  		if (!el) return;
+  		el.classList.add('hide');
+  		setTimeout(() => el.remove(), 1400);
 }

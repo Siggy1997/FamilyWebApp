@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import kr.co.siggy.family.common.BaseController;
+import kr.co.siggy.family.common.ResponseDTO;
 import kr.co.siggy.family.trip.service.TripService;
 
 
@@ -22,27 +23,32 @@ public class TripController extends BaseController {
 	@Autowired
 	private TripService tripService;
 
+	/** 전체 여행 목록 조회 */
+	@PostMapping("/group")
+	public ResponseDTO tripInfo(@RequestBody(required = false) Map<String, Object> data) {
+		Map<String, Object> tripGroup = tripService.tripGroup(data);
+		return ResponseDTO.ok(tripGroup);
+	}
 	 /** 전체 여행 목록 조회 */
-    @PostMapping("/list")
-    public ResponseEntity<?> tripList(@RequestBody(required = false) Map<String, Object> data) {
-    	logger.info("/api/trip/list");
+
+	@PostMapping("/list")
+    public ResponseDTO tripList(@RequestBody(required = false) Map<String, Object> data) {
     	List<Map<String, Object>> tripList = tripService.tripList(data);
-    	
-        return ResponseEntity.ok(tripList);
+        return ResponseDTO.ok(tripList);
     }
 
     /** 여행 단건 조회 */
     @PostMapping("/detail")
-    public ResponseEntity<?> tripDetail(@RequestBody Map<String, Object> data) {
+    public ResponseDTO tripDetail(@RequestBody Map<String, Object> data) {
     	Map<String, Object> tripDetail = tripService.tripDetail(data);
-        return ResponseEntity.ok(tripDetail);
+        return ResponseDTO.ok(tripDetail); 
     }
 
     /** 여행 추가 */
     @PostMapping("/create")
-    public ResponseEntity<?> tripCreate(@RequestBody Map<String, Object> data) {
+    public ResponseDTO tripCreate(@RequestBody Map<String, Object> data) {
         tripService.tripCreate(data);
-        return ResponseEntity.ok(Map.of("result", "ok"));
+        return ResponseDTO.ok();
     }
 //
 //    /** 여행 수정 */
