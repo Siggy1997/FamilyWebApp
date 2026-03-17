@@ -1,6 +1,7 @@
 (function() {
 	const BASE = '/';
-	
+	let VERSION = Date.now(); // 배포할 때 이 값만 변경
+
 	if ('serviceWorker' in navigator) {
 		navigator.serviceWorker.register('/sw.js', { scope: '/' });
 	}
@@ -8,7 +9,7 @@
 	// ── manifest
 	const manifest = document.createElement('link');
 	manifest.rel = 'manifest';
-	manifest.href = '/manifest.json';
+	manifest.href = '/manifest.json?v=' + VERSION;
 	document.head.appendChild(manifest);
 	
 	const metas = [
@@ -38,7 +39,7 @@
 	styles.forEach(href => {
 		const link = document.createElement('link');
 		link.rel = 'stylesheet';
-		link.href = BASE + href;
+		link.href = BASE + href + '?v=' + VERSION;
 		document.head.appendChild(link);
 	});
 
@@ -48,12 +49,11 @@
 		'js/common/common.js',
 		'js/' + pageName + '.js',
 	];
-	console.log(styles);
 
 	function loadNext(index) {
 		if (index >= scripts.length) return;
 		const script = document.createElement('script');
-		script.src = BASE + scripts[index];
+		script.src = BASE + scripts[index] + '?v=' + VERSION;
 		script.onload = () => loadNext(index + 1);
 		script.onerror = () => loadNext(index + 1);
 		document.body.appendChild(script);
