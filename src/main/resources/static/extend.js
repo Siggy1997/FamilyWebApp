@@ -1,5 +1,10 @@
 (function() {
 	const BASE = '/';
+	
+	if ('serviceWorker' in navigator) {
+		navigator.serviceWorker.register('/sw.js', { scope: '/' });
+	}
+	
 	// ── manifest
 	const manifest = document.createElement('link');
 	manifest.rel = 'manifest';

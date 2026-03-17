@@ -65,8 +65,10 @@ function handleLogin() {
 
 	// 통신
 	API.login.signIn(reqData, (res) => {
+		onLoginSuccess();
+		
 		//localStorage에 저장
-		sessionStorage.setItem('id', 			res.id);
+	/*	sessionStorage.setItem('id', 			res.id);
 		sessionStorage.setItem('group_id', 		res.group_id);
 		sessionStorage.setItem('name', 			res.name);
 		sessionStorage.setItem('avatar_path', 	res.avatar_path);
@@ -81,13 +83,45 @@ function handleLogin() {
 			localStorage.setItem('savedId', id);
 		} else {
 			localStorage.clear();
-		}
-		
-		location.replace('/html/index.html');
+		}*/
+		//location.replace('/html/index.html');
 	});
 	btn.classList.remove('loading');
 	btn.disabled = false;
 }
+
+
+// 로그인 성공 후
+async function onLoginSuccess() {
+  if (!('PushManager' in window)) return;
+  if (Notification.permission === 'denied') return;
+
+  const permission = await Notification.requestPermission();
+  if (permission !== 'granted') return;
+
+  const reg = await navigator.serviceWorker.ready;
+  let sub = await reg.pushManager.getSubscription();
+  if (!sub) {
+    sub = await reg.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: urlBase64ToUint8Array('BD1MXtvMmgVronEsvya_b51vHZhMDY9sVoPq8dZgQlNQmTQqFF2tRXAkkPe8vY8gSTG9PKeF-OT6ROPI8z1yng4'),
+    });
+  }
+
+  fetch('/api/push/subscribe', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(sub),
+  });
+}
+
+function urlBase64ToUint8Array(base64) {
+  const pad = '='.repeat((4 - base64.length % 4) % 4);
+  const b64 = (base64 + pad).replace(/-/g, '+').replace(/_/g, '/');
+  const raw = atob(b64);
+  return Uint8Array.from([...raw].map(c => c.charCodeAt(0)));
+}
+
 
 document.addEventListener('keydown', e => {
 	if (e.key === 'Enter') handleLogin();

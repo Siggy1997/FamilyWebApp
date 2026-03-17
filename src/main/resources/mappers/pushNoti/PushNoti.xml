@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="PushNoti">
+
+	<select id="findByEndpoint" parameterType="map" resultType="map">
+		SELECT * FROM push_subscriptions
+		WHERE endpoint = #{endpoint}
+		LIMIT 1
+	</select>
+
+	<select id="findByUserId" parameterType="map" resultType="map">
+		SELECT 
+			endpoint
+			, p256dh
+			, auth
+		FROM 
+			members
+		WHERE 
+			login_id = #{userId}
+	</select>
+
+	<select id="findAll" resultType="map">
+		SELECT * FROM push_subscriptions
+	</select>
+
+	<insert id="insertSubscription" parameterType="map">
+		INSERT INTO push_subscriptions (endpoint, p256dh, auth)
+		VALUES (#{endpoint}, #{p256dh}, #{auth})
+	</insert>
+
+	<update id="updateSubscription" parameterType="map">
+		UPDATE 
+			members
+		SET 
+			endpoint = #{endpoint}
+			, p256dh = #{p256dh}
+			, auth = #{auth}
+		WHERE 
+			login_id =#{userId}
+	</update>
+
+	<delete id="deleteByEndpoint" parameterType="map">
+		DELETE FROM push_subscriptions
+		WHERE endpoint = #{endpoint}
+	</delete>
+
+
+</mapper>

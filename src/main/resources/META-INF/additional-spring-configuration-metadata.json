@@ -1,5 +1,17 @@
-{"properties": [{
-  "name": "storage.root",
-  "type": "java.lang.String",
-  "description": "A description for 'storage.root'"
-}]}
+{"properties": [
+  {
+    "name": "storage.root",
+    "type": "java.lang.String",
+    "description": "A description for 'storage.root'"
+  },
+  {
+    "name": "vapid.public.key",
+    "type": "java.lang.String",
+    "description": "A description for 'vapid.public.key'"
+  },
+  {
+    "name": "vapid.public.key",
+    "type": "java.lang.String",
+    "description": "A description for 'vapid.public.key'"
+  }
+]}

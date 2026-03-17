@@ -214,3 +214,178 @@ function hideLoading() {
   		el.classList.add('hide');
   		setTimeout(() => el.remove(), 1400);
 }
+
+
+/* ═══════════════════════════════════════════════════════
+   pwa.js — SW 등록 + 푸시 구독
+═══════════════════════════════════════════════════════ */
+
+(function () {
+  if (!('serviceWorker' in navigator)) return;
+
+  /* ── SW 등록 ── */
+  navigator.serviceWorker.register('/sw.js', { scope: '/' })
+    .then(reg => {
+      console.log('[PWA] SW registered');
+
+      reg.addEventListener('updatefound', () => {
+        const nw = reg.installing;
+        nw?.addEventListener('statechange', () => {
+          if (nw.state === 'installed' && navigator.serviceWorker.controller) {
+            showUpdateBanner();
+          }
+        });
+      });
+    })
+    .catch(err => console.warn('[PWA] SW failed:', err));
+
+  /* ── 컨트롤러 교체 → 새로고침 ── */
+  let refreshing = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (refreshing) return;
+    refreshing = true;
+    location.reload();
+  });
+
+  /* ════════════════════════════════════════════════════
+     푸시 구독
+  ════════════════════════════════════════════════════ */
+
+  // Base64 → Uint8Array 변환 (VAPID 공개키용)
+  function urlBase64ToUint8Array(base64) {
+    const pad  = '='.repeat((4 - base64.length % 4) % 4);
+    const b64  = (base64 + pad).replace(/-/g, '+').replace(/_/g, '/');
+    const raw  = atob(b64);
+    return Uint8Array.from([...raw].map(c => c.charCodeAt(0)));
+  }
+
+  /* ── 구독 생성 + 서버 전송 ── */
+  async function subscribe(vapidPublicKey) {
+    const reg = await navigator.serviceWorker.ready;
+
+    // 이미 구독 중이면 재사용
+    let sub = await reg.pushManager.getSubscription();
+
+    if (!sub) {
+      sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(vapidPublicKey),
+      });
+    }
+
+    // 서버에 구독 정보 저장 요청
+    await fetch('/api/push/subscribe', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify(sub),
+    });
+
+    console.log('[PWA] Push subscribed');
+    return sub;
+  }
+
+  /* ── 구독 취소 ── */
+  async function unsubscribe() {
+    const reg = await navigator.serviceWorker.ready;
+    const sub = await reg.pushManager.getSubscription();
+    if (!sub) return;
+
+    await sub.unsubscribe();
+
+    await fetch('/api/push/unsubscribe', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ endpoint: sub.endpoint }),
+    });
+
+    console.log('[PWA] Push unsubscribed');
+  }
+
+  /* ════════════════════════════════════════════════════
+     외부 호출용 PWA 객체
+  ════════════════════════════════════════════════════ */
+  window.PWA = {
+
+    /* 알림 권한 요청 + 구독
+       사용: PWA.requestPush('VAPID_PUBLIC_KEY')   */
+    async requestPush(vapidPublicKey) {
+      if (!('PushManager' in window)) {
+        console.warn('[PWA] Push not supported');
+        return false;
+      }
+
+      // 이미 거부된 경우
+      if (Notification.permission === 'denied') {
+        console.warn('[PWA] Push permission denied');
+        return false;
+      }
+
+      // 권한 요청
+      const permission = await Notification.requestPermission();
+      if (permission !== 'granted') return false;
+
+      await subscribe(vapidPublicKey);
+      return true;
+    },
+
+    /* 구독 취소
+       사용: PWA.unsubscribePush()   */
+    unsubscribePush: unsubscribe,
+
+    /* 현재 구독 상태 확인
+       사용: const isOn = await PWA.isPushEnabled()   */
+    async isPushEnabled() {
+      if (!('PushManager' in window)) return false;
+      if (Notification.permission !== 'granted') return false;
+      const reg = await navigator.serviceWorker.ready;
+      const sub = await reg.pushManager.getSubscription();
+      return !!sub;
+    },
+
+    /* 사진 프리캐시
+       사용: PWA.precachePhotos(photos, 30)   */
+    precachePhotos(photos, limit = 30) {
+      if (!navigator.serviceWorker.controller) return;
+      const urls = (photos ?? []).filter(p => p?.file_path).slice(0, limit).map(p => p.file_path);
+      if (!urls.length) return;
+      navigator.serviceWorker.controller.postMessage({ type: 'PRECACHE_PHOTOS', urls });
+    },
+
+    /* 강제 업데이트 */
+    forceUpdate() {
+      navigator.serviceWorker.ready.then(reg => {
+        reg.waiting?.postMessage({ type: 'SKIP_WAITING' });
+      });
+    },
+  };
+
+  /* ── 업데이트 배너 ── */
+  function showUpdateBanner() {
+    if (document.getElementById('pwaBanner')) return;
+    const banner = document.createElement('div');
+    banner.id = 'pwaBanner';
+    banner.innerHTML = `<span>새 버전이 있어요</span><button id="pwaBannerBtn">업데이트</button>`;
+    Object.assign(banner.style, {
+      position: 'fixed', bottom: '80px', left: '50%',
+      transform: 'translateX(-50%)',
+      background: '#1a1a1a', color: '#f0f0f0',
+      border: '1px solid rgba(255,255,255,.12)', borderRadius: '24px',
+      padding: '10px 18px', display: 'flex', alignItems: 'center',
+      gap: '12px', fontSize: '14px', fontWeight: '500',
+      boxShadow: '0 4px 24px rgba(0,0,0,.5)', zIndex: '9999',
+    });
+    Object.assign(banner.querySelector('#pwaBannerBtn').style, {
+      background: '#fff', color: '#000', border: 'none',
+      borderRadius: '14px', padding: '6px 14px',
+      fontSize: '13px', fontWeight: '600', cursor: 'pointer',
+    });
+    banner.querySelector('#pwaBannerBtn').onclick = () => {
+      PWA.forceUpdate();
+      banner.remove();
+    };
+    document.body.appendChild(banner);
+    setTimeout(() => banner.remove(), 8000);
+  }
+
+})();
+

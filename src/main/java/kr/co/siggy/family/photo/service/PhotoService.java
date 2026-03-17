@@ -36,7 +36,7 @@ public class PhotoService extends BaseController{
 
 	public Map<String, Object> photoUpload(MultipartFile file, String tripId) {
 
-	    // 1️⃣ 저장 디렉토리 생성
+	    // 저장 디렉토리 생성
 	    Path dir = Paths.get(storageRoot, "family", tripId);
 	    try {
 	        Files.createDirectories(dir);
@@ -45,7 +45,7 @@ public class PhotoService extends BaseController{
 	        throw new RuntimeException("디렉토리 생성 실패: " + dir, e);
 	    }
 
-	    // 2️⃣ 파일명 생성
+	    // 파일명 생성
 	    String original = file.getOriginalFilename();
 	    String ext = original.substring(original.lastIndexOf(".") + 1);
 	    String savedName = UUID.randomUUID().toString().replace("-", "") + "." + ext;
@@ -60,13 +60,13 @@ public class PhotoService extends BaseController{
 	        throw new RuntimeException("파일 저장 실패: " + filePath, e);
 	    }
 
-	    // 3️⃣ DB에 저장할 상대 경로
+	    // DB에 저장할 상대 경로
 	    String webPath = urlPrefix + "/family/" + tripId + "/" + savedName;
 
-	    // 4️⃣ 파일 정보
+	    // 파일 정보
 	    long sizeBytes = file.getSize();
 
-	    // 5️⃣ DB 저장
+	    // DB 저장
 	    Map<String, Object> param = new HashMap<>();
 	    param.put("trip_id", tripId);
 	    param.put("file_path", webPath);

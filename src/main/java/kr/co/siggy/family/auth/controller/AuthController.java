@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import jakarta.servlet.http.HttpSession;
 import kr.co.siggy.family.auth.service.AuthService;
 import kr.co.siggy.family.common.BaseController;
 import kr.co.siggy.family.common.ResponseDTO;
@@ -21,11 +22,12 @@ public class AuthController extends BaseController {
 
 	/** 여행 게획 목록 조회 */
 	@PostMapping("/login")
-	public ResponseDTO login(@RequestBody Map<String, Object> data) {
+	public ResponseDTO login(@RequestBody Map<String, Object> data, HttpSession session) {
 		Map<String, Object> profile = authService.login(data);
 		if (profile == null) {
 			return ResponseDTO.loginFail("아이디 또는 비밀번호가 틀렸어요.");
 		} else {
+			session.setAttribute("id", data.get("id"));
 		}
 		return ResponseDTO.ok(profile);
 	}
