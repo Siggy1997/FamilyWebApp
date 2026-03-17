@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <title>memories.</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css">
 </head>
 <body>
 
@@ -20,6 +21,39 @@
       <div class="upload-progress-fill" id="uploadFill"></div>
     </div>
     <div class="upload-file-list" id="uploadFileList"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════
+     Photo Viewer Modal
+══════════════════════════════════════════════════ -->
+<div class="photo-viewer" id="photoViewer" aria-hidden="true">
+  <div class="pv-header">
+    <button class="pv-close" id="pvClose" aria-label="닫기">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+        <line x1="18" y1="6" x2="6" y2="18"/>
+        <line x1="6" y1="6" x2="18" y2="18"/>
+      </svg>
+    </button>
+    <div class="pv-counter" id="pvCounter">1 / 1</div>
+    <button class="pv-share" id="pvShare" aria-label="저장">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+        <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+        <polyline points="7 10 12 15 17 10"/>
+        <line x1="12" y1="15" x2="12" y2="3"/>
+      </svg>
+    </button>
+  </div>
+ 
+  <div class="swiper pv-swiper" id="pvSwiper">
+    <div class="swiper-wrapper" id="pvSwiperWrapper"></div>
+    <div class="swiper-button-prev pv-arrow pv-arrow--prev"></div>
+    <div class="swiper-button-next pv-arrow pv-arrow--next"></div>
+  </div>
+ 
+  <div class="pv-thumb-bar">
+    <div class="pv-file-name" id="pvFileName"></div>
+    <div class="pv-thumb-strip" id="pvThumbStrip"></div>
   </div>
 </div>
 
@@ -92,7 +126,7 @@
   </div>
 
 </div>
-
+<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
 <script src="../extend.js"></script>
 </body>
 </html>

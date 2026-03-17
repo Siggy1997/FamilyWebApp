@@ -24,7 +24,7 @@ function init() {
 	API.video.list({ trip_id: tripId }, (videos) => {
 		renderVideos(videos);
 	});
-	
+
 	const firstBtn = document.querySelector('.tab-btn.active');
 	if (firstBtn) moveIndicator(firstBtn);
 }
@@ -108,8 +108,8 @@ function renderSchedules(schedules) {
 /* ── 여행 기본 정보 렌더링 ── */
 function renderInfo(trip) {
 	document.getElementById('tripHero').innerHTML = trip.cover_photo_path
-	  ? `<img src="${trip.cover_photo_path}" class="trip-hero-img">`
-	  : `<div class="trip-hero-ph">
+		? `<img src="${trip.cover_photo_path}" class="trip-hero-img">`
+		: `<div class="trip-hero-ph">
        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
          <rect x="3" y="3" width="18" height="18" rx="2"/>
          <circle cx="8.5" cy="8.5" r="1.5"/>
@@ -431,11 +431,14 @@ function attachPhotoLongPress(el, photoId, idx) {
 		},
 		onTap: () => {
 			if (_isScrolling) return;
-			if (selectMode) toggleSelect(photoId);
+			if (selectMode) {
+				toggleSelect(photoId);
+			} else {
+				openPhotoViewer(idx);
+			}
 		},
 	});
 }
-
 
 /* ── 선택 모드 ── */
 function enterSelectMode() {
@@ -454,7 +457,7 @@ function cancelSelect() {
 	document.getElementById('sectionGallery').classList.remove('select-mode');
 	document.getElementById('btnBack').style.visibility = '';
 	document.getElementById('btnSelectCancel').style.display = 'none';
-	document.getElementById('navTitle').textContent ='';
+	document.getElementById('navTitle').textContent = '';
 	document.getElementById('selectActionBar').classList.remove('show');
 	document.querySelectorAll('.gallery-item.selected').forEach(el => el.classList.remove('selected'));
 	updateSelectUI();
@@ -658,6 +661,218 @@ function updateUploadItem(name, status, pct) {
 	}
 }
 
+
+/* ════════════════════════════════════════════════════
+   Photo Viewer — Swiper 기반
+════════════════════════════════════════════════════ */
+(function initPhotoViewer() {
+	let pvSwiper = null;
+	let pvThumbSwiper = null;
+	let _pvOpen = false;
+
+	/* ── 스크롤 잠금 / 해제 ─────────────────────────── */
+	// iOS Safari에서 body overflow만으로는 부족하므로
+	// scrollWrap의 overflow를 직접 제어하고 포지션을 고정합니다.
+	let _scrollLockY = 0;
+
+	function lockScroll() {
+		const wrap = document.getElementById('scrollWrap');
+		if (!wrap) return;
+		_scrollLockY = wrap.scrollTop;               // 현재 스크롤 위치 저장
+		wrap.style.overflow = 'hidden';              // 스크롤 차단
+		wrap.style.touchAction = 'none';             // 터치 이벤트 차단
+	}
+
+	function unlockScroll() {
+		const wrap = document.getElementById('scrollWrap');
+		if (!wrap) return;
+		wrap.style.overflow = '';
+		wrap.style.touchAction = '';
+		wrap.scrollTop = _scrollLockY;               // 저장했던 위치 복원
+	}
+
+	/* ── 썸네일 스트립 빌드 ──────────────────────────── */
+	function buildThumbStrip() {
+		const strip = document.getElementById('pvThumbStrip');
+		if (!strip) return;
+		strip.innerHTML = '';
+
+		allPhotos.forEach((p, i) => {
+			const item = document.createElement('div');
+			item.className = 'pv-thumb-item';
+			item.dataset.idx = i;
+
+			if (p.file_path) {
+				item.innerHTML = `<img src="${p.file_path}" loading="lazy" alt="">`;
+			} else {
+				item.innerHTML = `<div class="pv-thumb-ph">
+					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+						<rect x="3" y="3" width="18" height="18" rx="2"/>
+						<circle cx="8.5" cy="8.5" r="1.5"/>
+						<polyline points="21 15 16 10 5 21"/>
+					</svg>
+				</div>`;
+			}
+
+			item.addEventListener('click', () => {
+				pvSwiper?.slideTo(i);
+			});
+
+			strip.appendChild(item);
+		});
+	}
+
+	/* ── 썸네일 active 상태 업데이트 ────────────────── */
+	function updateThumbActive(idx) {
+		const strip = document.getElementById('pvThumbStrip');
+		if (!strip) return;
+
+		strip.querySelectorAll('.pv-thumb-item').forEach((el, i) => {
+			el.classList.toggle('active', i === idx);
+		});
+
+		// 활성 썸네일이 보이도록 스크롤
+		const activeEl = strip.querySelector(`.pv-thumb-item[data-idx="${idx}"]`);
+		if (activeEl) {
+			activeEl.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' });
+		}
+	}
+
+	/* ── 뷰어 열기 ──────────────────────────────────── */
+	window.openPhotoViewer = function (startIdx) {
+		if (!allPhotos?.length) return;
+		_pvOpen = true;
+
+		// 슬라이드 생성
+		const wrapper = document.getElementById('pvSwiperWrapper');
+		wrapper.innerHTML = '';
+
+		allPhotos.forEach(p => {
+			const slide = document.createElement('div');
+			slide.className = 'swiper-slide pv-slide';
+
+			if (p.file_path) {
+				slide.innerHTML = `<div class="pv-spinner"></div><img data-src="${p.file_path}" alt="">`;
+				const img = slide.querySelector('img');
+				img.onload = () => { img.classList.add('pv-loaded'); slide.querySelector('.pv-spinner')?.remove(); };
+				img.onerror = () => {
+					slide.querySelector('.pv-spinner')?.remove();
+					img.remove();
+					const ph = document.createElement('div');
+					ph.className = 'pv-slide-ph';
+					ph.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>`;
+					slide.appendChild(ph);
+				};
+			} else {
+				slide.innerHTML = `<div class="pv-slide-ph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div>`;
+			}
+			wrapper.appendChild(slide);
+		});
+
+		// Swiper 초기화
+		if (pvSwiper) { pvSwiper.destroy(true, true); pvSwiper = null; }
+
+		pvSwiper = new Swiper('#pvSwiper', {
+			initialSlide: startIdx ?? 0,
+			speed: 300,
+			grabCursor: true,
+			keyboard: { enabled: true },
+			navigation: {
+				prevEl: '.pv-arrow--prev',
+				nextEl: '.pv-arrow--next',
+			},
+			on: {
+				slideChange: onSlideChange,
+				afterInit: onSlideChange,
+			},
+		});
+
+		// 첫 로드
+		loadSlidesAround(startIdx ?? 0);
+		pvSwiper.on('slideChange', () => loadSlidesAround(pvSwiper.activeIndex));
+
+		// 썸네일 스트립
+		buildThumbStrip();
+		updateThumbActive(startIdx ?? 0);
+
+		// 스크롤 잠금 → 오픈
+		lockScroll();
+		const viewer = document.getElementById('photoViewer');
+		viewer.classList.add('open');
+		viewer.setAttribute('aria-hidden', 'false');
+	};
+
+	/* ── 주변 슬라이드 이미지 로드 ── */
+	function loadSlidesAround(idx) {
+		[idx - 1, idx, idx + 1].forEach(i => {
+			const slide = pvSwiper?.slides?.[i];
+			if (!slide) return;
+			const img = slide.querySelector('img[data-src]');
+			if (!img) return;
+			img.src = img.dataset.src;
+			delete img.dataset.src;
+		});
+	}
+
+	/* ── 슬라이드 변경 콜백 ── */
+	function onSlideChange() {
+		const total = allPhotos?.length ?? 0;
+		const cur = (pvSwiper?.activeIndex ?? 0) + 1;
+		document.getElementById('pvCounter').textContent = `${cur} / ${total}`;
+
+
+		// 썸네일 active
+		updateThumbActive(pvSwiper?.activeIndex ?? 0);
+	}
+
+	/* ── 뷰어 닫기 ── */
+	function closePv() {
+		if (!_pvOpen) return;
+		_pvOpen = false;
+
+		const viewer = document.getElementById('photoViewer');
+		viewer.classList.remove('open');
+		viewer.setAttribute('aria-hidden', 'true');
+
+		unlockScroll();
+	}
+
+	// 닫기 버튼
+	document.getElementById('pvClose').addEventListener('click', closePv);
+
+	// ESC
+	document.addEventListener('keydown', e => {
+		if (e.key === 'Escape' && _pvOpen) closePv();
+	});
+
+	// 공유/저장 버튼
+	document.getElementById('pvShare').addEventListener('click', async () => {
+		const idx = pvSwiper?.activeIndex ?? 0;
+		const photo = allPhotos?.[idx];
+		if (!photo?.file_path) return;
+
+		let file = blobCache.get(photo.id);
+		if (!file && photo.file_path) {
+			try {
+				const res = await fetch(photo.file_path, { mode: 'cors' });
+				const blob = await res.blob();
+				const ext = blob.type.split('/')[1]?.split('+')[0] || 'jpg';
+				file = new File([blob], `photo_${photo.id}.${ext}`, { type: blob.type });
+			} catch { file = null; }
+		}
+
+		if (file && navigator.share && navigator.canShare?.({ files: [file] })) {
+			try { await navigator.share({ files: [file] }); return; }
+			catch (e) { if (e.name === 'AbortError') return; }
+		}
+
+		const a = document.createElement('a');
+		a.href = photo.file_path;
+		a.download = photo.file_path.split('/').pop() || `photo_${photo.id}.jpg`;
+		a.click();
+	});
+
+})();
 
 
 

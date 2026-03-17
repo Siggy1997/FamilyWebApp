@@ -25,6 +25,7 @@ public class AuthController extends BaseController {
 		Map<String, Object> profile = authService.login(data);
 		if (profile == null) {
 			return ResponseDTO.loginFail("아이디 또는 비밀번호가 틀렸어요.");
+		} else {
 		}
 		return ResponseDTO.ok(profile);
 	}
