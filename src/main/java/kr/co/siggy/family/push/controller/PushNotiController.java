@@ -25,6 +25,7 @@ public class PushNotiController extends BaseController {
 	/* ── 구독 등록 ── */
 	@PostMapping("/subscribe")
 	public ResponseDTO subscribe(@RequestBody Map<String, Object> body, HttpSession session) {
+		logger.info("api/push/subscribe");
 	    String userId = (String) session.getAttribute("id");
 	    if (userId == null) return ResponseDTO.fail("fail");
 
@@ -53,6 +54,7 @@ public class PushNotiController extends BaseController {
 	/* ── 테스트 발송 (개발용) ── */
 	@PostMapping("/test")
 	public ResponseDTO test(HttpSession session) {
+		logger.info("api/push/test");
 	    String userId = (String) session.getAttribute("id");
 	    if (userId == null) return ResponseDTO.fail("fail");
 
@@ -61,7 +63,6 @@ public class PushNotiController extends BaseController {
 	    data.put("title",  "memories. 테스트 🔔");
 	    data.put("body",   "푸시 알림이 정상 동작해요!");
 	    data.put("url",    "/html/index.html");
-
 	    pushService.sendToUser(data);
 	    return ResponseDTO.ok();
 	}

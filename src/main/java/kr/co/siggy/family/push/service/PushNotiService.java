@@ -58,29 +58,41 @@ public class PushNotiService extends BaseController {
 
     /* ── 단건 발송 ── */
     private void send(Map<String, Object> sub, String title, String body, String url) {
+
         try {
-        	String payload = "{\"title\":\"" + title + "\","
-                    + "\"body\":\""  + body  + "\","
-                    + "\"url\":\""   + url   + "\","
-                    + "\"tag\":\"memories-push\"}";
-        	
+
+            String payload = String.format(
+                "{\"title\":\"%s\",\"body\":\"%s\",\"url\":\"%s\",\"tag\":\"memories-push\"}",
+                title, body, url
+            );
+
             String endpoint = (String) sub.get("endpoint");
             String p256dh   = (String) sub.get("p256dh");
             String auth     = (String) sub.get("auth");
 
-            Security.addProvider(new BouncyCastleProvider());
-            
-            PushService ps  = new PushService(vapidPublicKey, vapidPrivateKey, vapidSubject);
-            Notification noti = new Notification(endpoint, p256dh, auth, payload);
-            ps.send(noti);
+            PushService pushService = new PushService(
+                vapidPublicKey,
+                vapidPrivateKey,
+                vapidSubject
+            );
+
+            Notification notification = new Notification(
+                endpoint,
+                p256dh,
+                auth,
+                payload
+            );
+
+            pushService.send(notification);
 
             logger.info("[Push] 발송 성공: userId={}", sub.get("user_id"));
 
         } catch (Exception e) {
+
             logger.error("[Push] 발송 실패: {}", e.getMessage());
+
             if (e.getMessage() != null && e.getMessage().contains("410")) {
                 pushDao.deleteByEndpoint(sub);
-                logger.info("[Push] 만료 구독 삭제: {}", sub.get("endpoint"));
             }
         }
     }
