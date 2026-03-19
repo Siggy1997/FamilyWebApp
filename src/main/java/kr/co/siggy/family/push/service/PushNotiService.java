@@ -17,7 +17,9 @@ import nl.martijndwars.webpush.PushService;
 
 @Service
 public class PushNotiService extends BaseController {
-
+    static {
+        Security.addProvider(new BouncyCastleProvider());
+    }
     @Autowired
     private PushNotiDao pushDao;
 
