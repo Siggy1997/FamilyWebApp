@@ -9,7 +9,7 @@
 		LIMIT 1
 	</select>
 
-	<select id="sendToUser" parameterType="map" resultType="map">
+	<select id="sendToGroup" parameterType="map" resultType="map">
 		SELECT 
 			login_id
 			, endpoint

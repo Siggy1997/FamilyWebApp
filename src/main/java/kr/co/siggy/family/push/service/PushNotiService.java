@@ -43,10 +43,10 @@ public class PushNotiService extends BaseController {
     }
 
     /* ── 특정 유저에게 발송 ── */
-    public void sendToUser(Map<String, Object> data) {
-        List<Map<String, Object>> subs = pushDao.sendToUser(data);
+    public void sendToGroup(Map<String, Object> data) {
+        List<Map<String, Object>> subs = pushDao.sendToGroup(data);
         for (Map<String, Object> sub : subs) {
-            send(sub,(String) data.get("body"), (String) data.get("url"));
+            send(sub,(String) data.get("msg"), (String) data.get("url"));
         }
     }
 

@@ -32,8 +32,8 @@ public class PushNotiDao extends BaseDao{
 		
 	}
 
-	public List<Map<String, Object>> sendToUser(Map<String, Object> data) {
-		return sqlSession.selectList(nameSpace + ".sendToUser", data);
+	public List<Map<String, Object>> sendToGroup(Map<String, Object> data) {
+		return sqlSession.selectList(nameSpace + ".sendToGroup", data);
 	}
 
 	public List<Map<String, Object>> findAll() {

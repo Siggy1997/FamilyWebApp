@@ -18,7 +18,7 @@ import kr.co.siggy.family.push.service.PushNotiService;
 @RestController
 @RequestMapping(value = "/api/push")
 public class PushNotiController extends BaseController {
-
+ 
 	@Autowired
 	private PushNotiService pushService;
 
@@ -58,6 +58,14 @@ public class PushNotiController extends BaseController {
 		
 		return ResponseDTO.ok();
 	}
+
+	@PostMapping("/group")
+	public ResponseDTO sendToGroup(@RequestBody Map<String, Object> body) {
+		logger.info("api/push/test");
+		pushService.sendToGroup(body);
+		return ResponseDTO.ok();
+	}
+	
 	/* ── 테스트 발송 (개발용) ── */
 	@PostMapping("/test")
 	public ResponseDTO test(HttpSession session) {
@@ -70,7 +78,7 @@ public class PushNotiController extends BaseController {
 	    data.put("title",  "memories. 테스트 🔔");
 	    data.put("body",   "푸시 알림이 정상 동작해요!");
 	    data.put("url",    "/html/index.html");
-	    pushService.sendToUser(data);
+//	    pushService.sendToUser(data);
 	    return ResponseDTO.ok();
 	}
 }
