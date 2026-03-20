@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 public class IndexController {
 	@GetMapping("/")
 	public String getMethodName() {
-		return "redirect:/html/index.html";
+		return "redirect:/html/install.html";
 	}
 	
 }
