@@ -100,7 +100,7 @@ const API = (() => {
 		},
 		push: {
 			send(data = {}, onSuccess) {
-				return request('POST', '/push/send', data, onSuccess);
+				return request('POST', '/push/group', data, onSuccess);
 			},
 		}
 	};
