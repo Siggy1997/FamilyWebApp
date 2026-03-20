@@ -65,26 +65,27 @@ function handleLogin() {
 
 	// 통신
 	API.login.signIn(reqData, (res) => {
-		onLoginSuccess();
-		
 		//localStorage에 저장
-	/*	sessionStorage.setItem('id', 			res.id);
+		sessionStorage.setItem('id', 			res.id);
 		sessionStorage.setItem('group_id', 		res.group_id);
 		sessionStorage.setItem('name', 			res.name);
 		sessionStorage.setItem('avatar_path', 	res.avatar_path);
 		
 		if(document.getElementById('auto-login').checked){
 			localStorage.setItem('autoLogin', true);
-			localStorage.setItem('savedId', id);
-			localStorage.setItem('savedPw', pw);
+			localStorage.setItem('savedId', 	id);
+			localStorage.setItem('savedPw', 	pw);
+			localStorage.setItem('group_id',	res.group_id);
+			localStorage.setItem('name', 		res.name);
+			localStorage.setItem('avatar_path', res.avatar_path);
 						
 		} else if (document.getElementById('chk-remember').checked) {
 			localStorage.clear();
 			localStorage.setItem('savedId', id);
 		} else {
 			localStorage.clear();
-		}*/
-		//location.replace('/html/index.html');
+		}
+		location.replace('/html/index.html');
 	});
 	btn.classList.remove('loading');
 	btn.disabled = false;

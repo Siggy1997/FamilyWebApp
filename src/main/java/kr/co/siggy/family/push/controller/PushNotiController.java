@@ -50,7 +50,14 @@ public class PushNotiController extends BaseController {
 		pushService.unsubscribe(body);
 		return ResponseDTO.ok();
 	}
-
+	
+	/* ── 푸시 리스트 ── */
+	@PostMapping("/list")
+	public ResponseDTO pushList(@RequestBody Map<String, Object> body) {
+		pushService.pushList(body);
+		
+		return ResponseDTO.ok();
+	}
 	/* ── 테스트 발송 (개발용) ── */
 	@PostMapping("/test")
 	public ResponseDTO test(HttpSession session) {

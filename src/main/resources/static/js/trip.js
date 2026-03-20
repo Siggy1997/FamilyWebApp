@@ -578,14 +578,25 @@ async function handleFiles(files) {
 		}
 		updateUploadProgress(++done, fileArr.length);
 	}
-
+	
 	const newPhotos = results.filter(Boolean);
+	
 	if (newPhotos.length > 0) {
 		allPhotos = [...newPhotos, ...allPhotos];
 		renderGalleryGrid();
-		showAlert(`${newPhotos.length}장 추가됐어요!`);
+		showAlert(`${newPhotos.length}장 추가`);
+	
+		const pushData = {
+			group_id: sessionStorage.getItem("group_id"),
+			msg: `${tripData?.title || '여행'}에 ${newPhotos.length}개의 사진이 추가되었어요`,
+			url: `/html/trip.html?id=${tripId}`
+		};
+	
+		API.push.send(pushData, (res) => {
+			console.log('push sent', res);
+		});
 	}
-
+	
 	setTimeout(hideUploadSheet, 1200);
 	document.getElementById('fileInput').value = '';
 }

@@ -44,9 +44,9 @@ public class PushNotiService extends BaseController {
 
     /* ── 특정 유저에게 발송 ── */
     public void sendToUser(Map<String, Object> data) {
-        List<Map<String, Object>> subs = pushDao.findByUserId(data);
+        List<Map<String, Object>> subs = pushDao.sendToUser(data);
         for (Map<String, Object> sub : subs) {
-            send(sub, (String) data.get("title"), (String) data.get("body"), (String) data.get("url"));
+            send(sub,(String) data.get("body"), (String) data.get("url"));
         }
     }
 
@@ -54,36 +54,24 @@ public class PushNotiService extends BaseController {
     public void sendToAll(Map<String, Object> data) {
         List<Map<String, Object>> subs = pushDao.findAll();
         for (Map<String, Object> sub : subs) {
-            send(sub, (String) data.get("title"), (String) data.get("body"), (String) data.get("url"));
+            send(sub,(String) data.get("body"), (String) data.get("url"));
         }
     }
 
     /* ── 단건 발송 ── */
-    private void send(Map<String, Object> sub, String title, String body, String url) {
-
+    private void send(Map<String, Object> sub, String msg, String url) {
         try {
-
             String payload = String.format(
-                "{\"title\":\"%s\",\"body\":\"%s\",\"url\":\"%s\",\"tag\":\"memories-push\"}",
-                title, body, url
+                "\"body\":\"%s\",\"url\":\"%s\",\"tag\":\"memories-push\"}",
+                msg, url
             );
 
             String endpoint = (String) sub.get("endpoint");
             String p256dh   = (String) sub.get("p256dh");
             String auth     = (String) sub.get("auth");
 
-            PushService pushService = new PushService(
-                vapidPublicKey,
-                vapidPrivateKey,
-                vapidSubject
-            );
-
-            Notification notification = new Notification(
-                endpoint,
-                p256dh,
-                auth,
-                payload
-            );
+            PushService pushService = new PushService(vapidPublicKey,vapidPrivateKey,vapidSubject);
+            Notification notification = new Notification(endpoint,p256dh,auth,payload);
 
             pushService.send(notification);
 
@@ -92,10 +80,14 @@ public class PushNotiService extends BaseController {
         } catch (Exception e) {
 
             logger.error("[Push] 발송 실패: {}", e.getMessage());
-
             if (e.getMessage() != null && e.getMessage().contains("410")) {
                 pushDao.deleteByEndpoint(sub);
             }
         }
     }
+
+	public void pushList(Map<String, Object> body) {
+		// TODO Auto-generated method stub
+		
+	}
 }

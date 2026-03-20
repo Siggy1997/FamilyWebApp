@@ -5,49 +5,63 @@
 
 let trips = [];
 const id = sessionStorage.getItem("id");
+const avatar_path = sessionStorage.getItem("avatar_path");
 const group_id = sessionStorage.getItem("group_id");
 
 function init() {
-  const reqData = { id, group_id };
+	const reqData = { id, group_id };
+	onLoginSuccess();
 
-  let done = 0;
-  function checkDone() {
-    done++;
-    if (done === 2) hideLoading();
-  }
+	let done = 0;
+	function checkDone() {
+		done++;
+		if (done === 2) hideLoading();
+	}
 
-  API.trip.group(reqData, (res) => {
-    renderGrpInfo(res.grpInfo, res.grpMember);
-    checkDone();
-  });
+	const profile = document.getElementById('navProfileBtn');
+	const hasAvatarImg =avatar_path && avatar_path !== 'undefined' && avatar_path !== 'null' &&avatar_path.trim() !== '';	
+	profile.innerHTML = hasAvatarImg
+		? `<img src="${avatar_path}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`
+		: `<svg viewBox="0 0 24 24" fill="none" stroke="#5c3d1e" stroke-width="1.7" width="25" height="25">
+			<circle cx="12" cy="8" r="4"/>
+			<path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+		   </svg>`;
+	API.trip.group(reqData, (res) => {
+		renderGrpInfo(res.grpInfo, res.grpMember);
+		checkDone();
+	});
 
-  API.trip.list(reqData, (res) => {
-    trips = res ?? [];
-    renderHero(trips[0] ?? null);
-    renderGrid();
-    checkDone();
-  });
+	API.trip.list(reqData, (res) => {
+		trips = res ?? [];
+		renderHero(trips[0] ?? null);
+		renderGrid();
+		checkDone();
+	});
 }
+
 function renderGrpInfo(grpInfo, grpMember) {
-  const eyebrow = document.getElementById('greeting-eyebrow');
-  eyebrow.innerHTML = `<span class="eyebrow-line"></span><span>${grpInfo.name}</span>`;
+	const eyebrow = document.getElementById('greeting-eyebrow');
+	eyebrow.innerHTML = `<span class="eyebrow-line"></span><span>${grpInfo.name}</span>`;
 
-  const profilesRow = document.getElementById('profiles-row');
-  const members = Array.isArray(grpMember) ? grpMember : [grpMember];
+	const profilesRow = document.getElementById('profiles-row');
+	const members = Array.isArray(grpMember) ? grpMember : [grpMember];
 
-  profilesRow.innerHTML = members.map(member => {
-    const isActive = member.login_id == id ? 'active' : '';
-    const avatar = member.avatar_path
-      ? `<img src="${member.avatar_path}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`
-      : `<svg viewBox="0 0 24 24" fill="none" stroke="#c8b09a" stroke-width="1.5" width="22" height="22">
-           <circle cx="12" cy="8" r="4"/>
-           <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
-         </svg>`;
-    return `
-      <div class="profile-item ${isActive}">
-        <div class="profile-avatar">${avatar}</div>
-      </div>`;
-  }).join('');
+	profilesRow.innerHTML = members
+	.filter(member => member.login_id != id)
+	.map(member => {
+		const avatar = member.avatar_path
+			? `<img src="${member.avatar_path}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`
+			: `<svg viewBox="0 0 24 24" fill="none" stroke="#c8b09a" stroke-width="1.5" width="22" height="22">
+				<circle cx="12" cy="8" r="4"/>
+				<path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+			   </svg>`;
+
+		return `
+			<div class="profile-item">
+				<div class="profile-avatar">${avatar}</div>
+			</div>`;
+	})
+	.join('');
 }
 
 /* ── Hero 렌더링 ── */
@@ -287,8 +301,8 @@ function daysInMonth(y, m) {
 
 
 /* ── 페이지 이동 ── */
-function goTrip(id) { 
-  Router.push(`/html/trip.html?id=${id}`, document.querySelector('.app'));
+function goTrip(id) {
+	Router.push(`/html/trip.html?id=${id}`, document.querySelector('.app'));
 }
 
 
@@ -328,10 +342,40 @@ function submitTrip() {
 		btn.disabled = false;
 	});
 }
-	document.querySelector('.nav-logo').addEventListener('click', () => {
-	  location.reload();
-	});
+document.querySelector('.nav-logo').addEventListener('click', () => {
+	location.reload();
+});
 
+// 로그인 성공 후
+async function onLoginSuccess() {
+	if (!('PushManager' in window)) return;
+	if (Notification.permission === 'denied') return;
+
+	const permission = await Notification.requestPermission();
+	if (permission !== 'granted') return;
+
+	const reg = await navigator.serviceWorker.ready;
+	let sub = await reg.pushManager.getSubscription();
+	if (!sub) {
+		sub = await reg.pushManager.subscribe({
+			userVisibleOnly: true,
+			applicationServerKey: urlBase64ToUint8Array('BD1MXtvMmgVronEsvya_b51vHZhMDY9sVoPq8dZgQlNQmTQqFF2tRXAkkPe8vY8gSTG9PKeF-OT6ROPI8z1yng4'),
+		});
+	}
+
+	fetch('/api/push/subscribe', {
+		method: 'POST',
+		headers: { 'Content-Type': 'application/json' },
+		body: JSON.stringify(sub),
+	});
+}
+
+function urlBase64ToUint8Array(base64) {
+	const pad = '='.repeat((4 - base64.length % 4) % 4);
+	const b64 = (base64 + pad).replace(/-/g, '+').replace(/_/g, '/');
+	const raw = atob(b64);
+	return Uint8Array.from([...raw].map(c => c.charCodeAt(0)));
+}
 
 showLoading();
 init();

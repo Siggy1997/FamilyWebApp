@@ -98,6 +98,11 @@ const API = (() => {
 				return request('POST', '/highlight/delete', data, onSuccess);
 			},
 		},
+		push: {
+			send(data = {}, onSuccess) {
+				return request('POST', '/push/send', data, onSuccess);
+			},
+		}
 	};
 })();
 

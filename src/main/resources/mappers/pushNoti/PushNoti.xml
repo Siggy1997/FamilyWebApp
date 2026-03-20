@@ -9,15 +9,17 @@
 		LIMIT 1
 	</select>
 
-	<select id="findByUserId" parameterType="map" resultType="map">
+	<select id="sendToUser" parameterType="map" resultType="map">
 		SELECT 
-			endpoint
+			login_id
+			, endpoint
 			, p256dh
 			, auth
 		FROM 
 			members
 		WHERE 
-			login_id = #{userId}
+			group_id = #{groupId}
+		<!-- TODO : 자신은 제외 -->
 	</select>
 
 	<select id="findAll" resultType="map">
