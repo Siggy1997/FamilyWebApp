@@ -10,8 +10,6 @@ const group_id = sessionStorage.getItem("group_id");
 
 function init() {
 	const reqData = { id, group_id };
-	onLoginSuccess();
-
 	let done = 0;
 	function checkDone() {
 		done++;
@@ -348,6 +346,61 @@ document.querySelector('.nav-logo').addEventListener('click', () => {
 
 // 로그인 성공 후
 async function onLoginSuccess() {
+	try {
+		console.log('push 시작');
+
+		if (!('serviceWorker' in navigator)) {
+			console.log('serviceWorker 미지원');
+			return;
+		}
+
+		if (!('PushManager' in window)) {
+			console.log('PushManager 미지원');
+			return;
+		}
+
+		if (!('Notification' in window)) {
+			console.log('Notification 미지원');
+			return;
+		}
+
+		console.log('현재 권한:', Notification.permission);
+
+		const reg0 = await navigator.serviceWorker.getRegistration();
+		console.log('현재 등록 SW:', reg0);
+
+		const permission = await Notification.requestPermission();
+		console.log('권한 요청 결과:', permission);
+
+		if (permission !== 'granted') return;
+
+		const reg = await navigator.serviceWorker.ready;
+		console.log('ready SW:', reg);
+
+		let sub = await reg.pushManager.getSubscription();
+		console.log('기존 subscription:', sub);
+
+		if (!sub) {
+			console.log('subscribe 진입');
+			sub = await reg.pushManager.subscribe({
+				userVisibleOnly: true,
+				applicationServerKey: urlBase64ToUint8Array('BD1MXtvMmgVronEsvya_b51vHZhMDY9sVoPq8dZgQlNQmTQqFF2tRXAkkPe8vY8gSTG9PKeF-OT6ROPI8z1yng4'),
+			});
+			console.log('subscribe 완료', sub);
+		}
+
+		const res = await fetch('/api/push/subscribe', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify(sub),
+		});
+
+		console.log('서버 저장 응답:', res.status);
+	} catch (e) {
+		console.error('push subscribe 에러', e);
+	}
+}
+/*async function onLoginSuccess() {
 	if (!('PushManager' in window)) return;
 	if (Notification.permission === 'denied') return;
 
@@ -368,7 +421,7 @@ async function onLoginSuccess() {
 		headers: { 'Content-Type': 'application/json' },
 		body: JSON.stringify(sub),
 	});
-}
+}*/
 
 function urlBase64ToUint8Array(base64) {
 	const pad = '='.repeat((4 - base64.length % 4) % 4);
@@ -379,3 +432,4 @@ function urlBase64ToUint8Array(base64) {
 
 showLoading();
 init();
+onLoginSuccess();
