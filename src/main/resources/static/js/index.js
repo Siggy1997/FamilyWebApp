@@ -4,9 +4,9 @@
 ═══════════════════════════════ */
 
 let trips = [];
-const id = sessionStorage.getItem("id");
-const avatar_path = sessionStorage.getItem("avatar_path");
-const group_id = sessionStorage.getItem("group_id");
+const id 			= sessionStorage.getItem("id");
+const avatar_path 	= sessionStorage.getItem("avatar_path");
+const group_id 		= sessionStorage.getItem("group_id");
 
 function init() {
 	const reqData = { id, group_id };
@@ -45,7 +45,7 @@ function renderGrpInfo(grpInfo, grpMember) {
 	const members = Array.isArray(grpMember) ? grpMember : [grpMember];
 
 	profilesRow.innerHTML = members
-		.filter(member => member.login_id != id)
+		.filter(member => member.id != id)
 		.map(member => {
 			const avatar = member.avatar_path
 				? `<img src="${member.avatar_path}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`

@@ -2,9 +2,11 @@ package kr.co.siggy.family.push.service;
 
 import java.security.Security;
 import java.util.Base64;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.http.HttpResponse;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -75,13 +77,29 @@ public class PushNotiService extends BaseController {
             PushService pushService = new PushService(vapidPublicKey,vapidPrivateKey,vapidSubject);
             Notification notification = new Notification(endpoint,p256dh,auth,payload);
 
-            pushService.send(notification);
-
-            logger.info("[Push] 발송 성공: userId={}", sub.get("login_id"));
-            org.apache.http.HttpResponse response = pushService.send(notification);
+            HttpResponse response = pushService.send(notification);
             int statusCode = response.getStatusLine().getStatusCode();
             logger.info("[Push] FCM 응답 코드: {}", statusCode);
 
+            boolean success = (statusCode == 201 || statusCode == 200);
+
+            // 발송 이력 저장
+            Map<String, Object> data = new HashMap<>();
+            data.put("id",    sub.get("id"));
+            data.put("group_id",    sub.get("group_id"));
+            data.put("msg",        msg);
+            data.put("target_url",  url);
+            data.put("send_status", success ? "SUCCESS" : "FAIL");
+            data.put("fail_reason", success ? null : statusCode);
+            data.put("payload_json", payload);
+            pushDao.insertPush(data);
+
+            logger.info("[Push] 발송 성공: Id={}", sub.get("id"));
+
+            if (statusCode == 410 || statusCode == 404) {
+                pushDao.deleteByEndpoint(sub);
+            }
+            
         } catch (Exception e) {
 
             logger.error("[Push] 발송 실패: {}", e.getMessage());
@@ -91,8 +109,8 @@ public class PushNotiService extends BaseController {
         }
     }
 
-	public void pushList(Map<String, Object> body) {
-		// TODO Auto-generated method stub
-		
+	public List<Map<String, Object>> pushList(Map<String, Object> body) {
+		List<Map<String, Object>> pushList = pushDao.pushList(body);
+		return pushList;
 	}
 }

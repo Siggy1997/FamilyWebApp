@@ -102,8 +102,11 @@ const API = (() => {
 			subscribe(data = {}, onSuccess) {
 				return request('POST', '/push/subscribe', data, onSuccess);
 			},
-			send(data = {}, onSuccess) {
+			sendGroup(data = {}, onSuccess) {
 				return request('POST', '/push/group', data, onSuccess);
+			},
+			list(data = {}, onSuccess) {
+				return request('POST', '/push/list', data, onSuccess);
 			},
 		}
 	};

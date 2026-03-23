@@ -5,7 +5,7 @@
 
 	<select id="login" parameterType="map" resultType="map">
 		SELECT 
-			login_id as id
+			id
 			, group_id
 			, name
 			, avatar_path
@@ -13,9 +13,9 @@
 		FROM 
 			members
 		WHERE
-			login_id = #{id}
+			id = #{id}
 		AND
-			login_pw = #{pw}
+			pw = #{pw}
 	</select>
 
 

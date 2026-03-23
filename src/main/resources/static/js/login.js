@@ -86,7 +86,7 @@ function handleLogin() {
 			localStorage.clear();
 		}
 		
-		onLoginSuccess();
+		onLoginSuccess(res.id);
 		
 		/*location.replace('/html/index.html');*/
 	});
@@ -96,7 +96,7 @@ function handleLogin() {
 
 
 // 로그인 성공 후
-async function onLoginSuccess() {
+async function onLoginSuccess(id) {
   if (!('PushManager' in window)) return;
   if (Notification.permission === 'denied') return;
 
@@ -111,14 +111,13 @@ async function onLoginSuccess() {
       applicationServerKey: urlBase64ToUint8Array('BD1MXtvMmgVronEsvya_b51vHZhMDY9sVoPq8dZgQlNQmTQqFF2tRXAkkPe8vY8gSTG9PKeF-OT6ROPI8z1yng4'),
     });
   }
-	API.push.subscribe(sub,(res) => {
-				location.replace('/html/index.html');
+	const payload = {
+		...sub.toJSON(),
+		id: id,
+    };
+	API.push.subscribe(payload, (res) => {
+		location.replace('/html/index.html');
 	});
-/*  fetch('/api/push/subscribe', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(sub),
-  });*/
 }
 
 function urlBase64ToUint8Array(base64) {

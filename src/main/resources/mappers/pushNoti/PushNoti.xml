@@ -11,7 +11,8 @@
 
 	<select id="sendToGroup" parameterType="map" resultType="map">
 		SELECT 
-			login_id
+			id
+			, group_id
 			, endpoint
 			, p256dh
 			, auth
@@ -39,7 +40,7 @@
 			, p256dh = #{p256dh}
 			, auth = #{auth}
 		WHERE 
-			login_id =#{userId}
+			id =#{id}
 	</update>
 
 	<delete id="deleteByEndpoint" parameterType="map">
@@ -47,5 +48,28 @@
 		WHERE endpoint = #{endpoint}
 	</delete>
 
+	<insert id="insertPush" parameterType="map">
+	    INSERT INTO push 
+	    	(id, group_id, msg, target_url, send_status, fail_reason, payload_json)
+	    VALUES 
+	    	(#{id}, #{group_id}, #{msg}, #{target_url}, #{send_status}, #{fail_reason}, #{payload_json})
+	</insert>
 
+	<select id="pushList" parameterType="map" resultType="map">
+		SELECT 
+			group_id
+			, msg
+			, target_url
+			, send_status
+			, DATE_FORMAT(created_at, '%Y-%m-%d %H:%i:%s') AS created_at
+			, read_YN		
+		FROM 
+			push
+		WHERE 
+			send_status = 'SUCCESS'
+		AND
+			id = #{id}
+		ORDER BY 
+			created_at DESC
+	</select>
 </mapper>

@@ -1,6 +1,7 @@
 package kr.co.siggy.family.push.controller;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,14 +27,14 @@ public class PushNotiController extends BaseController {
 	@PostMapping("/subscribe")
 	public ResponseDTO subscribe(@RequestBody Map<String, Object> body, HttpSession session) {
 		logger.info("api/push/subscribe");
-	    String userId = (String) session.getAttribute("id");
-	    if (userId == null) return ResponseDTO.fail("fail");
+	    String id = (String) body.get("id");
+	    if (id == null) return ResponseDTO.fail("fail");
 
 	    Map<String, String> keys = (Map<String, String>) body.get("keys");
 
 	    // service로 넘길 data 구성
-	    Map<String, Object> data = new java.util.HashMap<>();
-	    data.put("userId",   userId);
+	    Map<String, Object> data = new HashMap<>();
+	    data.put("id",   id);
 	    data.put("endpoint", body.get("endpoint"));
 	    data.put("p256dh",   keys.get("p256dh"));
 	    data.put("auth",     keys.get("auth"));
@@ -51,14 +52,6 @@ public class PushNotiController extends BaseController {
 		return ResponseDTO.ok();
 	}
 	
-	/* ── 푸시 리스트 ── */
-	@PostMapping("/list")
-	public ResponseDTO pushList(@RequestBody Map<String, Object> body) {
-		pushService.pushList(body);
-		
-		return ResponseDTO.ok();
-	}
-
 	@PostMapping("/group")
 	public ResponseDTO sendToGroup(@RequestBody Map<String, Object> body) {
 		logger.info("api/push/group");
@@ -67,16 +60,25 @@ public class PushNotiController extends BaseController {
 		return ResponseDTO.ok();
 	}
 	
+	/* ── 푸시 리스트 ── */
+	@PostMapping("/list")
+	public ResponseDTO pushList(@RequestBody Map<String, Object> body) {
+		logger.info("api/push/list");
+		List<Map<String, Object>> pushList = pushService.pushList(body);
+		
+		return ResponseDTO.ok(pushList);
+	}
+	
 	/* ── 테스트 발송 (개발용) ── */
 	@PostMapping("/test")
-	public ResponseDTO test(HttpSession session, @RequestBody Map<String, Object> body) {
+	public ResponseDTO test(@RequestBody Map<String, Object> body) {
 		logger.info("api/push/test");
-	    String userId = (String) session.getAttribute("id");
-	    if (userId == null) return ResponseDTO.fail("fail");
+	    String id = (String) body.get("id");
+	    if (id == null) return ResponseDTO.fail("fail");
 
 	    Map<String, Object> data = new HashMap<>();
 	    data.put("group_id", body.get("group_id"));
-	    data.put("userId", userId);
+	    data.put("id", id);
 	    data.put("title",  "memories. 테스트 🔔");
 	    data.put("msg",   "푸시 알림이 정상 동작해요!");
 	    data.put("url",    "/html/index.html");

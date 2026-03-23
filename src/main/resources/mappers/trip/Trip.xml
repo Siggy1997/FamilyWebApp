@@ -18,7 +18,6 @@
     <select id="grpMember" parameterType="map" resultType="map">
         SELECT
         	id
-        	, login_id
         	, name
         	, role
         	, avatar_path
