@@ -45,8 +45,9 @@ public class PushNotiService extends BaseController {
     /* ── 특정 유저에게 발송 ── */
     public void sendToGroup(Map<String, Object> data) {
         List<Map<String, Object>> subs = pushDao.sendToGroup(data);
+        logger.info("SEND LIST : {}", subs);
         for (Map<String, Object> sub : subs) {
-            send(sub,(String) data.get("msg"), (String) data.get("url"));
+        	send(sub,(String) data.get("msg"), (String) data.get("url"));
         }
     }
 
@@ -61,11 +62,12 @@ public class PushNotiService extends BaseController {
     /* ── 단건 발송 ── */
     private void send(Map<String, Object> sub, String msg, String url) {
         try {
+        	logger.info("### PUSH SEND START");
             String payload = String.format(
-                "\"body\":\"%s\",\"url\":\"%s\",\"tag\":\"memories-push\"}",
+                "{\"body\":\"%s\",\"url\":\"%s\",\"tag\":\"memories-push\"}",
                 msg, url
             );
-
+            logger.info("### payload : {}", payload);
             String endpoint = (String) sub.get("endpoint");
             String p256dh   = (String) sub.get("p256dh");
             String auth     = (String) sub.get("auth");
@@ -75,7 +77,10 @@ public class PushNotiService extends BaseController {
 
             pushService.send(notification);
 
-            logger.info("[Push] 발송 성공: userId={}", sub.get("user_id"));
+            logger.info("[Push] 발송 성공: userId={}", sub.get("login_id"));
+            org.apache.http.HttpResponse response = pushService.send(notification);
+            int statusCode = response.getStatusLine().getStatusCode();
+            logger.info("[Push] FCM 응답 코드: {}", statusCode);
 
         } catch (Exception e) {
 

@@ -61,24 +61,26 @@ public class PushNotiController extends BaseController {
 
 	@PostMapping("/group")
 	public ResponseDTO sendToGroup(@RequestBody Map<String, Object> body) {
-		logger.info("api/push/test");
+		logger.info("api/push/group");
+		logger.info(body.toString());
 		pushService.sendToGroup(body);
 		return ResponseDTO.ok();
 	}
 	
 	/* ── 테스트 발송 (개발용) ── */
 	@PostMapping("/test")
-	public ResponseDTO test(HttpSession session) {
+	public ResponseDTO test(HttpSession session, @RequestBody Map<String, Object> body) {
 		logger.info("api/push/test");
 	    String userId = (String) session.getAttribute("id");
 	    if (userId == null) return ResponseDTO.fail("fail");
 
 	    Map<String, Object> data = new HashMap<>();
+	    data.put("group_id", body.get("group_id"));
 	    data.put("userId", userId);
 	    data.put("title",  "memories. 테스트 🔔");
-	    data.put("body",   "푸시 알림이 정상 동작해요!");
+	    data.put("msg",   "푸시 알림이 정상 동작해요!");
 	    data.put("url",    "/html/index.html");
-//	    pushService.sendToUser(data);
+	    pushService.sendToGroup(data);
 	    return ResponseDTO.ok();
 	}
 }
