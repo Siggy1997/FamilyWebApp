@@ -1,5 +1,6 @@
 (function() {
 	const BASE = '/';
+	const VERSION = '20260323_1'; // 배포할 때마다 변경
 
 	// ── pageName 추출 (CSS/JS 파일명 결정)
 	const _strIdx = window.location.href.indexOf('/html');
@@ -14,13 +15,13 @@
 		...(pageName ? ['css/' + pageName + '.css'] : []),
 	];
 	document.write(
-		styles.map(href => `<link rel="stylesheet" href="${BASE}${href}">`).join('')
+		styles.map(href => `<link rel="stylesheet" href="${BASE}${href}?v=${VERSION}">`).join('')
 	);
 
 	// ── manifest
 	const manifest = document.createElement('link');
 	manifest.rel = 'manifest';
-	manifest.href = '/manifest.json';
+	manifest.href = '/manifest.json?v=' + VERSION;
 	document.head.appendChild(manifest);
 
 	// ── meta 태그
@@ -48,7 +49,7 @@
 	function loadNext(index) {
 		if (index >= scripts.length) return;
 		const script = document.createElement('script');
-		script.src = BASE + scripts[index];
+		script.src = BASE + scripts[index] + '?v=' + VERSION;
 		script.onload = () => loadNext(index + 1);
 		script.onerror = () => loadNext(index + 1);
 		document.body.appendChild(script);
