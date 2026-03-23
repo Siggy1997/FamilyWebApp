@@ -85,7 +85,10 @@ function handleLogin() {
 		} else {
 			localStorage.clear();
 		}
-		location.replace('/html/index.html');
+		
+		onLoginSuccess();
+		
+		/*location.replace('/html/index.html');*/
 	});
 	btn.classList.remove('loading');
 	btn.disabled = false;
@@ -108,12 +111,14 @@ async function onLoginSuccess() {
       applicationServerKey: urlBase64ToUint8Array('BD1MXtvMmgVronEsvya_b51vHZhMDY9sVoPq8dZgQlNQmTQqFF2tRXAkkPe8vY8gSTG9PKeF-OT6ROPI8z1yng4'),
     });
   }
-
-  fetch('/api/push/subscribe', {
+	API.push.subscribe(sub,(res) => {
+				location.replace('/html/index.html');
+	});
+/*  fetch('/api/push/subscribe', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(sub),
-  });
+  });*/
 }
 
 function urlBase64ToUint8Array(base64) {

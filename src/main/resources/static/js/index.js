@@ -17,7 +17,7 @@ function init() {
 	}
 
 	const profile = document.getElementById('navProfileBtn');
-	const hasAvatarImg =avatar_path && avatar_path !== 'undefined' && avatar_path !== 'null' &&avatar_path.trim() !== '';	
+	const hasAvatarImg = avatar_path && avatar_path !== 'undefined' && avatar_path !== 'null' && avatar_path.trim() !== '';
 	profile.innerHTML = hasAvatarImg
 		? `<img src="${avatar_path}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`
 		: `<svg viewBox="0 0 24 24" fill="none" stroke="#5c3d1e" stroke-width="1.7" width="25" height="25">
@@ -45,21 +45,21 @@ function renderGrpInfo(grpInfo, grpMember) {
 	const members = Array.isArray(grpMember) ? grpMember : [grpMember];
 
 	profilesRow.innerHTML = members
-	.filter(member => member.login_id != id)
-	.map(member => {
-		const avatar = member.avatar_path
-			? `<img src="${member.avatar_path}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`
-			: `<svg viewBox="0 0 24 24" fill="none" stroke="#c8b09a" stroke-width="1.5" width="22" height="22">
+		.filter(member => member.login_id != id)
+		.map(member => {
+			const avatar = member.avatar_path
+				? `<img src="${member.avatar_path}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`
+				: `<svg viewBox="0 0 24 24" fill="none" stroke="#c8b09a" stroke-width="1.5" width="22" height="22">
 				<circle cx="12" cy="8" r="4"/>
 				<path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
 			   </svg>`;
 
-		return `
+			return `
 			<div class="profile-item">
 				<div class="profile-avatar">${avatar}</div>
 			</div>`;
-	})
-	.join('');
+		})
+		.join('');
 }
 
 /* ── Hero 렌더링 ── */
@@ -432,4 +432,3 @@ function urlBase64ToUint8Array(base64) {
 
 showLoading();
 init();
-onLoginSuccess();

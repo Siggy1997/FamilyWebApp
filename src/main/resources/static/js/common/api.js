@@ -99,6 +99,9 @@ const API = (() => {
 			},
 		},
 		push: {
+			subscribe(data = {}, onSuccess) {
+				return request('POST', '/push/subscribe', data, onSuccess);
+			},
 			send(data = {}, onSuccess) {
 				return request('POST', '/push/group', data, onSuccess);
 			},
