@@ -69,6 +69,14 @@ public class PushNotiController extends BaseController {
 		return ResponseDTO.ok(pushList);
 	}
 	
+	/* ── 푸시 리스트 ── */
+	@PostMapping("/read")
+	public ResponseDTO pushRead(@RequestBody Map<String, Object> body) {
+		logger.info("api/push/pushRead");
+		pushService.pushRead(body);
+		return ResponseDTO.ok();
+	}
+	
 	/* ── 테스트 발송 (개발용) ── */
 	@PostMapping("/test")
 	public ResponseDTO test(@RequestBody Map<String, Object> body) {

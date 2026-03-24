@@ -113,4 +113,8 @@ public class PushNotiService extends BaseController {
 		List<Map<String, Object>> pushList = pushDao.pushList(body);
 		return pushList;
 	}
+
+	public void pushRead(Map<String, Object> body) {
+		pushDao.pushRead(body);
+	}
 }

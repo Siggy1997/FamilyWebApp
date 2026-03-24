@@ -49,6 +49,10 @@ public class PushNotiDao extends BaseDao{
 		return sqlSession.selectList(nameSpace + ".pushList", data);
 	}
 
+	public void pushRead(Map<String, Object> body) {
+		sqlSession.update(nameSpace + ".pushRead", body);
+	}
+
 
 
 }

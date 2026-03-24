@@ -343,6 +343,9 @@ function submitTrip() {
 document.querySelector('.nav-logo').addEventListener('click', () => {
 	location.reload();
 });
+document.getElementById('pushAlarmBtn').addEventListener('click', () => {
+	Router.push('/html/push.html', document.querySelector('.app'));
+});
 
 // 로그인 성공 후
 async function onLoginSuccess() {
