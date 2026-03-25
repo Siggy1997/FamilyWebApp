@@ -110,7 +110,7 @@ body {
 }
 .modal-title {
   font-family: var(--font-display);
-  font-size: 20px; font-style: italic; color: var(--ink);
+  font-size: 20px;color: var(--ink);
 }
 .modal-close {
   width: 30px; height: 30px; border-radius: 50%;
