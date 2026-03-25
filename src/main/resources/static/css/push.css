@@ -51,7 +51,7 @@
 
 /* ── 아이템 ── */
 .push-item {
-  display: flex; align-items: flex-start; gap: 14px;
+  display: flex; align-items: center; gap: 14px;
   padding: 10px 10px;
   margin: 2px 16px;
   border-radius: 13px;
@@ -60,9 +60,8 @@
 }
 .push-item:active { background: var(--accent-pale); }
 
-.push-item.notRead{
-    background-color: #9a6b3a4a !important;
-}
+.new-push{width: 6px; height: 6px; border-radius: 50%}
+.new-push.notRead{background-color: #ff4d4f !important;}
 .push-icon {
   width: 42px; height: 42px; border-radius: 50%;
   background: var(--warm); border: 1px solid var(--border);

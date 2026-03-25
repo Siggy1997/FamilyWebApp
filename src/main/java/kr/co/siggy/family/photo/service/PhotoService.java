@@ -37,7 +37,7 @@ public class PhotoService extends BaseController{
 	public Map<String, Object> photoUpload(MultipartFile file, String tripId) {
 
 	    // 저장 디렉토리 생성
-	    Path dir = Paths.get(storageRoot, "family", tripId);
+		Path dir = Paths.get(storageRoot, tripId);
 	    try {
 	        Files.createDirectories(dir);
 	        logger.info("### Directory : {}", dir);
@@ -61,7 +61,7 @@ public class PhotoService extends BaseController{
 	    }
 
 	    // DB에 저장할 상대 경로
-	    String webPath = urlPrefix + "/family/" + tripId + "/" + savedName;
+	    String webPath = urlPrefix + "/trips/" + tripId + "/" + savedName;
 
 	    // 파일 정보
 	    long sizeBytes = file.getSize();
