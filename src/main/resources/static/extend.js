@@ -1,6 +1,6 @@
 (function() {
 	const BASE = '/';
-	const VERSION = '20260323_1'; // 배포할 때마다 변경
+	const VERSION = new Date().toISOString().slice(0, 16).replace(/[-T:]/g, '');
 
 	// ── pageName 추출 (CSS/JS 파일명 결정)
 	const _strIdx = window.location.href.indexOf('/html');
