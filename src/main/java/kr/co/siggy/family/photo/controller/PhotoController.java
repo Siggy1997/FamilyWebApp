@@ -25,8 +25,8 @@ public class PhotoController extends BaseController {
 
 	/** 여행 이미지 목록 조회 */
 	@PostMapping("/list")
-	public ResponseDTO photoList(@RequestBody Map<String, Object> data) {
-		List<Map<String, Object>> photoList = photoService.photoList(data);
+	public ResponseDTO photoList(@RequestBody Map<String, Object> param) {
+		List<Map<String, Object>> photoList = photoService.photoList(param);
 		return ResponseDTO.ok(photoList);
 	}
 

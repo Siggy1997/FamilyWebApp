@@ -22,7 +22,9 @@ function closeModal(id) {
     ? document.getElementById(id)
     : document.querySelector('.modal.show');
   if (target) target.classList.remove('show');
-  document.getElementById('overlay').classList.remove('show');
+  if(id !== 'datePickerModal'){
+  	document.getElementById('overlay').classList.remove('show');
+  }
 }
 
 /* ══════════════════════════════════

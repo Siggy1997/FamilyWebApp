@@ -14,25 +14,29 @@ public class TripDao extends BaseDao{
 	private String nameSpace = "Trip";
 	
 
-	public Map<String, Object> grpInfo(Map<String, Object> data) {
-		return sqlSession.selectOne(nameSpace + ".grpInfo", data);
+	public Map<String, Object> grpInfo(Map<String, Object> param) {
+		return sqlSession.selectOne(nameSpace + ".grpInfo", param);
 	}
 
-	public List<Map<String, Object>> grpMember(Map<String, Object> data) {
-		return sqlSession.selectList(nameSpace + ".grpMember", data);
+	public List<Map<String, Object>> grpMember(Map<String, Object> param) {
+		return sqlSession.selectList(nameSpace + ".grpMember", param);
 	}
 	
-	public List<Map<String, Object>> tripList(Map<String, Object> data) {
-		return sqlSession.selectList(nameSpace + ".tripList", data);
+	public List<Map<String, Object>> tripList(Map<String, Object> param) {
+		return sqlSession.selectList(nameSpace + ".tripList", param);
 	}
 
-	public Map<String, Object> tripDetail(Map<String, Object> data) {
-		return sqlSession.selectOne(nameSpace + ".tripDetail", data);
+	public List<Map<String, Object>> recentTripFilePath(String recentTripId) {
+		return sqlSession.selectList(nameSpace + ".recentTripFilePath", recentTripId);
+	}
+	public Map<String, Object> tripDetail(Map<String, Object> param) {
+		return sqlSession.selectOne(nameSpace + ".tripDetail", param);
 	}
 
-	public void tripCreate(Map<String, Object> data) {
-		sqlSession.insert(nameSpace + ".tripCreate", data);
+	public void tripCreate(Map<String, Object> param) {
+		sqlSession.insert(nameSpace + ".tripCreate", param);
 	}
+
 
 	
 

@@ -145,8 +145,7 @@
   width: 100%; aspect-ratio: 16/9;
   display: grid;
   grid-template-columns: 1.3fr 1fr 0.8fr;
-  grid-template-rows: 1fr 1fr; gap: 1.5px;
-  background: var(--border);
+  grid-template-rows: 1fr 1fr; gap: 2px;
 }
 .hero-ph div { background: var(--warm); background-size: cover; background-position: center; }
 .hero-ph div:nth-child(3) { grid-row: span 2; }
@@ -207,7 +206,7 @@
 
 .trip-info { padding: 9px 11px 11px; }
 .trip-name {
-  font-size: 13px; font-weight: 600; color: var(--ink);
+  font-size: 13px; font-weight: 600; color: var(--brown);
   margin-bottom: 2px;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }

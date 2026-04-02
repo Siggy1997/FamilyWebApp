@@ -15,23 +15,14 @@ function init() {
 		done++;
 		if (done === 2) hideLoading();
 	}
-
-	const profile = document.getElementById('navProfileBtn');
-	const hasAvatarImg = avatar_path && avatar_path !== 'undefined' && avatar_path !== 'null' && avatar_path.trim() !== '';
-	profile.innerHTML = hasAvatarImg
-		? `<img src="${avatar_path}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`
-		: `<svg viewBox="0 0 24 24" fill="none" stroke="#5c3d1e" stroke-width="1.7" width="25" height="25">
-			<circle cx="12" cy="8" r="4"/>
-			<path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
-		   </svg>`;
 	API.trip.group(reqData, (res) => {
 		renderGrpInfo(res.grpInfo, res.grpMember);
 		checkDone();
 	});
 
 	API.trip.list(reqData, (res) => {
-		trips = res ?? [];
-		renderHero(trips[0] ?? null);
+		trips = res.tripList ?? [];
+		renderHero(trips[0] ?? null, res.recentTripPath);
 		renderGrid();
 		checkDone();
 	});
@@ -45,7 +36,6 @@ function renderGrpInfo(grpInfo, grpMember) {
 	const members = Array.isArray(grpMember) ? grpMember : [grpMember];
 
 	profilesRow.innerHTML = members
-		.filter(member => member.id != id)
 		.map(member => {
 			const avatar = member.avatar_path
 				? `<img src="${member.avatar_path}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`
@@ -63,19 +53,25 @@ function renderGrpInfo(grpInfo, grpMember) {
 }
 
 /* ── Hero 렌더링 ── */
-function renderHero(trip) {
-	const sec = document.getElementById('heroSection');
-	if (!trip) { sec.innerHTML = ''; return; }
-
-	const cells = [
-		'linear-gradient(155deg,#c9a882,#a07050)',
-		'linear-gradient(155deg,#7ab8c8,#3a88a8)',
-		'linear-gradient(155deg,#88a870,#508040)',
-		'linear-gradient(155deg,#d4b090,#b07860)',
-		'linear-gradient(155deg,#c8a888,#987058)',
-	].map(g => `<div style="background:${g}"></div>`).join('');
-
-	sec.innerHTML = `
+function renderHero(trip, recentTripPath) {
+    const sec = document.getElementById('heroSection');
+    if (!trip) { sec.innerHTML = ''; return; }
+	console.log(trip);
+	console.log(recentTripPath);
+	const filePaths = recentTripPath && recentTripPath.file_path ? recentTripPath.file_path : [];
+	
+	console.log(filePaths);
+	const cells = recentTripPath.length > 0
+	    ? recentTripPath.map(item => `<div style="background:url('${item.file_path}') center/cover no-repeat"></div>`).join('')
+	    : [
+	        'linear-gradient(155deg,#c9a882,#a07050)',
+	        'linear-gradient(155deg,#7ab8c8,#3a88a8)',
+	        'linear-gradient(155deg,#88a870,#508040)',
+	        'linear-gradient(155deg,#d4b090,#b07860)',
+	        'linear-gradient(155deg,#c8a888,#987058)',
+	      ].map(g => `<div style="background:${g}"></div>`).join('');
+	      
+    sec.innerHTML = `
     <div class="section-label">최근 여행</div>
     <div class="hero-card" onclick="goTrip(${trip.id})">
       <div class="hero-ph">${cells}</div>
@@ -94,20 +90,45 @@ function renderHero(trip) {
     </div>`;
 }
 
+
+/*
+	sec.innerHTML = `
+    <div class="section-label">최근 여행</div>
+    <div class="hero-card" onclick="goTrip(${trip.id})">
+      <div class="hero-ph">${cells}</div>
+      <div class="hero-overlay">
+        <div class="hero-tag">${trip.location || '—'}</div>
+        <div class="hero-name">${trip.title}</div>
+        <div class="hero-bottom">
+          <div class="hero-meta">사진 ${trip.photo_count ?? 0}장</div>
+          <div class="hero-go">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <polyline points="9 18 15 12 9 6"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+    </div>`;*/
+
 /* ── Grid 렌더링 ── */
 function renderGrid() {
 	const grid = document.getElementById('tripsGrid');
 
 	const cards = trips.map((trip, i) => `
     <div class="trip-card" style="animation-delay:${Math.min(i * 0.05, 0.25)}s" onclick="goTrip(${trip.id})">
-      <div class="trip-thumb">
-        <div class="trip-thumb-ph">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <rect x="3" y="3" width="18" height="18" rx="2"/>
-            <circle cx="8.5" cy="8.5" r="1.5"/>
-            <polyline points="21 15 16 10 5 21"/>
-          </svg>
-        </div>
+       <div class="trip-thumb">
+        ${trip.cover_photo_path
+            ? `<img src="${trip.cover_photo_path}" style="width:100%;height:100%;object-fit:cover;">`
+            : `<div class="trip-thumb">
+		        <div class="trip-thumb-ph">
+		          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+		            <rect x="3" y="3" width="18" height="18" rx="2"/>
+		            <circle cx="8.5" cy="8.5" r="1.5"/>
+		            <polyline points="21 15 16 10 5 21"/>
+		          </svg>
+		        </div>
+		      </div>`
+        	}
       </div>
       <div class="trip-info">
         <div class="trip-name">${trip.title}</div>
@@ -328,7 +349,7 @@ function submitTrip() {
 		memo: memo || null,
 	};
 
-	API.trips.create(payload, (res) => {
+	API.trip.create(payload, (res) => {
 		const newTrip = { photo_count: 0, ...payload, ...res };
 		trips.unshift(newTrip);
 		renderHero(trips[0]);

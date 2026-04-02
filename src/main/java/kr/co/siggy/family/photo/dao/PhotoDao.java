@@ -14,12 +14,12 @@ public class PhotoDao extends BaseDao{
 
 	private String nameSpace = "Photo";
 	
-	public List<Map<String, Object>> photoList(Map<String, Object> data) {
-		return sqlSession.selectList(nameSpace + ".photoList", data);
+	public List<Map<String, Object>> photoList(Map<String, Object> param) {
+		return sqlSession.selectList(nameSpace + ".photoList", param);
 	}
 
-	public void photoUpload(Map<String, Object> data) {
-		sqlSession.insert(nameSpace + ".photoUpload", data);
+	public void photoUpload(Map<String, Object> param) {
+		sqlSession.insert(nameSpace + ".photoUpload", param);
 	}
 
 

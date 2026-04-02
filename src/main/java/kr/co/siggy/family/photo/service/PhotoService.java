@@ -29,8 +29,8 @@ public class PhotoService extends BaseController{
 	@Autowired
 	private PhotoDao photoDao;
 	
-	public List<Map<String, Object>> photoList(Map<String, Object> data) {
-		List<Map<String, Object>> photoList = photoDao.photoList(data);
+	public List<Map<String, Object>> photoList(Map<String, Object> param) {
+		List<Map<String, Object>> photoList = photoDao.photoList(param);
 		return photoList;
 	}
 

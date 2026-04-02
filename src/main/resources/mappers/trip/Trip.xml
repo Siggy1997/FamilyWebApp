@@ -29,22 +29,36 @@
 
     <!-- ── 전체 여행 목록 ── -->
     <select id="tripList" parameterType="map" resultType="map">
-        SELECT
-            t.id,
-            t.title,
-            t.location,
-            t.started_at,
-            t.ended_at,
-            t.cover_photo_path,
-            t.memo,
-            t.created_at,
-            COUNT(DISTINCT p.id) AS photo_count,
-            COUNT(DISTINCT v.id) AS video_count
-        FROM trips t
-        LEFT JOIN photos p ON p.trip_id = t.id
-        LEFT JOIN videos v ON v.trip_id = t.id
-        GROUP BY t.id
-        ORDER BY t.started_at IS NULL ASC, t.started_at DESC, t.created_at DESC
+         SELECT
+		    t.id
+		    ,t.group_id
+		    ,t.title
+		    ,t.location
+		    ,t.started_at
+		    ,t.ended_at
+		    ,t.cover_photo_path
+		    ,t.memo
+		    ,t.created_at
+		    ,COUNT(DISTINCT p.id) AS photo_count
+		    ,COUNT(DISTINCT v.id) AS video_count
+		FROM trips t
+		LEFT JOIN photos p ON p.trip_id = t.id
+		LEFT JOIN videos v ON v.trip_id = t.id
+		WHERE t.group_id = #{group_id}
+		GROUP BY t.id
+		ORDER BY t.started_at IS NULL ASC, t.started_at DESC, t.created_at DESC;
+    </select>
+    
+    <select id="recentTripFilePath" parameterType="map" resultType="map">
+	    SELECT 
+	    	file_path
+	    FROM 
+	    	photos
+	    WHERE 
+	    	trip_id = #{recentTripId}
+	    ORDER BY 
+	    	RAND()
+    	LIMIT 5
     </select>
 
 

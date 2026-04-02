@@ -25,29 +25,29 @@ public class TripController extends BaseController {
 
 	/** 전체 여행 목록 조회 */
 	@PostMapping("/group")
-	public ResponseDTO tripInfo(@RequestBody(required = false) Map<String, Object> data) {
-		Map<String, Object> tripGroup = tripService.tripGroup(data);
+	public ResponseDTO tripInfo(@RequestBody(required = false) Map<String, Object> param) {
+		Map<String, Object> tripGroup = tripService.tripGroup(param);
 		return ResponseDTO.ok(tripGroup);
 	}
 	 /** 전체 여행 목록 조회 */
 
 	@PostMapping("/list")
-    public ResponseDTO tripList(@RequestBody(required = false) Map<String, Object> data) {
-    	List<Map<String, Object>> tripList = tripService.tripList(data);
+    public ResponseDTO tripList(@RequestBody(required = false) Map<String, Object> param) {
+    	Map<String, Object> tripList = tripService.tripList(param);
         return ResponseDTO.ok(tripList);
     }
 
     /** 여행 단건 조회 */
     @PostMapping("/detail")
-    public ResponseDTO tripDetail(@RequestBody Map<String, Object> data) {
-    	Map<String, Object> tripDetail = tripService.tripDetail(data);
+    public ResponseDTO tripDetail(@RequestBody Map<String, Object> param) {
+    	Map<String, Object> tripDetail = tripService.tripDetail(param);
         return ResponseDTO.ok(tripDetail); 
     }
 
     /** 여행 추가 */
     @PostMapping("/create")
-    public ResponseDTO tripCreate(@RequestBody Map<String, Object> data) {
-        tripService.tripCreate(data);
+    public ResponseDTO tripCreate(@RequestBody Map<String, Object> param) {
+        tripService.tripCreate(param);
         return ResponseDTO.ok();
     }
 //

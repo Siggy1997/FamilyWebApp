@@ -1,4 +1,7 @@
 const API = (() => {
+	const id 			= sessionStorage.getItem("id");
+	const group_id 		= sessionStorage.getItem("group_id");
+	
 	const BASE_URL = '/api';
 
 	async function request(method, path, body = null, onSuccess) {
@@ -49,7 +52,7 @@ const API = (() => {
 			group(data = {}, onSuccess) {
 				return request('POST', '/trip/group', data, onSuccess);
 			},
-			list(data = {}, onSuccess) {
+			list(data = {id, group_id}, onSuccess) {
 				return request('POST', '/trip/list', data, onSuccess);
 			},
 			detail(data = {}, onSuccess) {
