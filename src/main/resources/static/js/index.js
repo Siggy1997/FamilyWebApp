@@ -110,44 +110,85 @@ function renderHero(trip, recentTripPath) {
       </div>
     </div>`;*/
 
-/* ── Grid 렌더링 ── */
+let tripSwiper = null;
+
+/* ── Trip Grid → Swiper 렌더링 ── */
 function renderGrid() {
-	const grid = document.getElementById('tripsGrid');
+	const wrapper = document.getElementById('tripsGrid');
+	if (!wrapper) return;
 
-	const cards = trips.map((trip, i) => `
-    <div class="trip-card" style="animation-delay:${Math.min(i * 0.05, 0.25)}s" onclick="goTrip(${trip.id})">
-       <div class="trip-thumb">
-        ${trip.cover_photo_path
-            ? `<img src="${trip.cover_photo_path}" style="width:100%;height:100%;object-fit:cover;">`
-            : `<div class="trip-thumb">
-		        <div class="trip-thumb-ph">
-		          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-		            <rect x="3" y="3" width="18" height="18" rx="2"/>
-		            <circle cx="8.5" cy="8.5" r="1.5"/>
-		            <polyline points="21 15 16 10 5 21"/>
-		          </svg>
-		        </div>
-		      </div>`
-        	}
-      </div>
-      <div class="trip-info">
-        <div class="trip-name">${trip.title}</div>
-        <div class="trip-sub">${trip.location || ''}</div>
-      </div>
-    </div>`).join('');
+	const slides = trips.map((trip, i) => `
+		<div class="swiper-slide">
+			<div class="trip-card trip-card-swiper" style="animation-delay:${Math.min(i * 0.05, 0.25)}s" onclick="goTrip(${trip.id})">
+				<div class="trip-thumb">
+					${trip.cover_photo_path
+						? `<img src="${trip.cover_photo_path}" style="width:100%;height:100%;object-fit:cover;">`
+						: `
+						<div class="trip-thumb-ph">
+							<svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+								<rect x="3" y="3" width="18" height="18" rx="2"/>
+								<circle cx="8.5" cy="8.5" r="1.5"/>
+								<polyline points="21 15 16 10 5 21"/>
+							</svg>
+						</div>`
+					}
+				</div>
+				<div class="trip-info">
+					<div class="trip-name">${trip.title}</div>
+					<div class="trip-sub">${trip.location || ''}</div>
+				</div>
+			</div>
+		</div>
+	`).join('');
 
-	grid.innerHTML = cards + `
-    <button class="add-trip-card" onclick="openModal('addModal')">
-      <div class="add-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-          <line x1="12" y1="5" x2="12" y2="19"/>
-          <line x1="5" y1="12" x2="19" y2="12"/>
-        </svg>
-      </div>
-      <span class="add-label">여행 추가</span>
-    </button>`;
+	const addSlide = `
+		<div class="swiper-slide">
+			<button class="add-trip-card add-trip-card-swiper" onclick="openModal('addModal')">
+				<div class="add-icon">
+					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+						<line x1="12" y1="5" x2="12" y2="19"/>
+						<line x1="5" y1="12" x2="19" y2="12"/>
+					</svg>
+				</div>
+				<span class="add-label">여행 추가</span>
+			</button>
+		</div>
+	`;
+
+	wrapper.innerHTML = slides + addSlide;
+
+	/* 기존 swiper 제거 */
+	if (tripSwiper) {
+		tripSwiper.destroy(true, true);
+		tripSwiper = null;
+	}
+
+	/* Swiper 생성 */
+	tripSwiper = new Swiper('#tripSwiper', {
+		  slidesPerView: 1.23,
+		  spaceBetween: 14,
+		  speed: 400,
+		  grabCursor: true,
+		  centeredSlides: false,
+		  slidesOffsetBefore: 22,
+		  slidesOffsetAfter: 22,
+		  watchOverflow: true,
+		  pagination: {
+		    el: '#tripsSwiperPagination',
+		    clickable: true,
+		  },
+		breakpoints: {
+			480: {
+				slidesPerView: 1.23,
+				spaceBetween: 16,
+			},
+			768: {
+				slidesPerView: 2.2,
+				spaceBetween: 18,
+			},
+		},
+	});
 }
-
 
 /* ══ 날짜 피커 — 무한 스크롤 드럼롤 ══ */
 const dateState = { target: null, year: null, month: null, day: null };

@@ -28,7 +28,6 @@
 }
 .nav-back-btn:active { background: var(--accent-pale); }
 .nav-logo {
-  font-family: var(--font-display);
    font-size: 18px; font-weight: 700;
   color: var(--brown);
 }

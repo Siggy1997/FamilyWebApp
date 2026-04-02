@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <title>memories.</title>
+<meta name="theme-color" content="#ffffff">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css">
 </head>
 <body>
@@ -35,14 +36,6 @@
         <line x1="6" y1="6" x2="18" y2="18"/>
       </svg>
     </button>
-    <div class="pv-counter" id="pvCounter">1 / 1</div>
-    <button class="pv-share" id="pvShare" aria-label="저장">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-        <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
-        <polyline points="7 10 12 15 17 10"/>
-        <line x1="12" y1="15" x2="12" y2="3"/>
-      </svg>
-    </button>
   </div>
  
   <div class="swiper pv-swiper" id="pvSwiper">
@@ -52,8 +45,30 @@
   </div>
  
   <div class="pv-thumb-bar">
-    <div class="pv-file-name" id="pvFileName"></div>
     <div class="pv-thumb-strip" id="pvThumbStrip"></div>
+	<div style="display: flex;justify-content: space-between;margin: 9px 7px;">
+  	<button class="pv-share" id="pvDelete" aria-label="삭제">
+	    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+	      <path d="M3 6h18"/>
+	      <path d="M8 6V4.8C8 3.806 8.806 3 9.8 3h4.4C15.194 3 16 3.806 16 4.8V6"/>
+	      <path d="M19 6l-1 13.2A2 2 0 0116.008 21H7.992A2 2 0 016 19.2L5 6"/>
+	      <path d="M10 10v7"/>
+	      <path d="M14 10v7"/>
+	    </svg>
+	  </button>
+	  <button class="pv-share" id="pvLike" aria-label="좋아요">
+	    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+	      <path d="M12 21s-6.716-4.438-9.192-8.03C.884 10.18 1.2 6.6 4.24 4.76c2.27-1.38 4.85-.61 6.26 1.11 1.41-1.72 3.99-2.49 6.26-1.11 3.04 1.84 3.356 5.42 1.432 8.21C18.716 16.562 12 21 12 21z"/>
+	    </svg>
+	  </button>
+	  <button class="pv-share" id="pvShare" aria-label="저장">
+	    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+	      <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+	      <polyline points="7 10 12 15 17 10"/>
+	      <line x1="12" y1="15" x2="12" y2="3"/>
+	    </svg>
+	  </button>
+	</div>
   </div>
 </div>
 

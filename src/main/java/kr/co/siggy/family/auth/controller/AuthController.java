@@ -23,12 +23,14 @@ public class AuthController extends BaseController {
 	/** 여행 게획 목록 조회 */
 	@PostMapping("/login")
 	public ResponseDTO login(@RequestBody Map<String, Object> data, HttpSession session) {
+		logger.info("/api/auth/login");
 		Map<String, Object> profile = authService.login(data);
 		if (profile == null) {
 			return ResponseDTO.loginFail("아이디 또는 비밀번호가 틀렸어요.");
 		} else {
 			session.setAttribute("id", data.get("id"));
 		}
+		logger.info("RES :: {}", profile);
 		return ResponseDTO.ok(profile);
 	}
 

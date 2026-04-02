@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8">
-  <title>memories.</title>
-  <script src="../extend.js"></script>
+<meta charset="UTF-8">
+<title>memories.</title>
+<script src="../extend.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css">
 </head>
 <body>
 
@@ -99,78 +100,55 @@
 </div>
 
 
-  <div class="scroll-wrap" id="scrollWrap">
-    <div class="big-header" id="bigHeader">
-	  <div class="bh-top">
-	    <div class="bh-profiles" id="profiles-row">
-	      <div class="profile-item">
-	        <div class="profile-avatar">
-	          <svg viewBox="0 0 24 24" fill="none" stroke="#c8b09a" stroke-width="1.5" width="18" height="18">
-	            <circle cx="12" cy="8" r="4"/>
-	            <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
-	          </svg>
-	        </div>
-	      </div>
-	    </div>
-	  </div>
-	  <div class="bh-body">
-	    <div class="bh-title">함께한<br><span>모든 순간</span></div>
-		<div class="bh-label" id="greeting-eyebrow">
-		      <span class="eyebrow-line"></span>
-		      <span>-</span>
-		    </div>
-	  </div>
-	</div>
-
-    <div class="header-divider"></div>
-
-    <div class="section" id="heroSection"></div>
-
-    <div class="section">
-      <div class="section-label">모든 여행</div>
-      <div class="trips-grid" id="tripsGrid">
-        <div class="skeleton-card">
-          <div class="skeleton skeleton-thumb"></div>
-          <div class="skeleton-info">
-            <div class="skeleton skeleton-line-1"></div>
-            <div class="skeleton skeleton-line-2"></div>
-          </div>
-        </div>
-        <div class="skeleton-card">
-          <div class="skeleton skeleton-thumb"></div>
-          <div class="skeleton-info">
-            <div class="skeleton skeleton-line-1"></div>
-            <div class="skeleton skeleton-line-2"></div>
-          </div>
+ <div class="scroll-wrap" id="scrollWrap">
+   <div class="big-header" id="bigHeader">
+  <div class="bh-top">
+    <div class="bh-profiles" id="profiles-row">
+      <div class="profile-item">
+        <div class="profile-avatar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#c8b09a" stroke-width="1.5" width="18" height="18">
+            <circle cx="12" cy="8" r="4"/>
+            <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+          </svg>
         </div>
       </div>
     </div>
-
-	<div class="section">
-		<div class="section-label">즐겨찾기</div>
-		<div class="trips-grid" id="tripsGrid">
-			<div class="trip-card">
-				<div class="trip-thumb">
-					<div class="trip-thumb-ph">
-						<svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-          <rect x="3" y="3" width="18" height="18" rx="2" />
-          <circle cx="8.5" cy="8.5" r="1.5" />
-          <polyline points="21 15 16 10 5 21" />
-        </svg>
-					</div>
-				</div>
-				<div class="trip-info">
-					<div class="trip-name" style="text-align: center">즐겨찾기</div>
-				</div>
-			</div>
-		</div>
-
-	</div>
-
-			<div class="page-end"></div>
+  </div>
+  <div class="bh-body">
+    <div class="bh-title">함께한<br><span>모든 순간</span></div>
+	<div class="bh-label" id="greeting-eyebrow">
+	      <span class="eyebrow-line"></span>
+	      <span>-</span>
+	    </div>
   </div>
 </div>
 
-</body>
+<div class="header-divider"></div>
 
+<div class="section" id="heroSection"></div>
+
+<div class="section" style="padding: 0">
+  <div class="section-label" style="padding-left : 22px;">여행 목록</div>
+
+  <div class="swiper trips-swiper" id="tripSwiper">
+    <div class="swiper-wrapper" id="tripsGrid"></div>
+    <div class="trips-swiper-pagination" id="tripsSwiperPagination" style="display: none;"></div>
+  </div>
+</div>
+<div class="section">
+	<div class="section-label">기타</div>
+	<div class="others">
+		<div class="others-item">1</div>
+		<div class="others-item">1</div>
+		<div class="others-item">1</div>
+		<div class="others-item">1</div>
+	</div>
+</div>
+
+<div class="page-end"></div>
+
+</div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+</body>
 </html>
