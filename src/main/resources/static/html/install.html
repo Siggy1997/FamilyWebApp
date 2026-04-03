@@ -19,12 +19,12 @@
 
     img {
       position: fixed;
-      inset: 0;
+      top: calc(env(safe-area-inset-top) * -1);
+      left: 0;
       width: 100%;
-      height: 100%;
-      object-fit: contain;
+      height: calc(100vh + env(safe-area-inset-top));
+      object-fit: cover;
       object-position: center top;
-      background: black;
     }
   </style>
 </head>
