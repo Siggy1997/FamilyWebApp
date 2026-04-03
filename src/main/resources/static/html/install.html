@@ -41,11 +41,11 @@
     function setViewportVars() {
       const doc = document.documentElement;
 
-      // 현재 실제 보이는 높이
-      const vh = window.innerHeight;
-      doc.style.setProperty('--app-height', `${vh}px`);
+      // 현재 보이는 앱 높이
+      const innerH = window.innerHeight;
+      doc.style.setProperty('--app-height', `${innerH}px`);
 
-      // CSS safe-area 값 읽기용 임시 요소
+      // env(safe-area-inset-top) 읽기용
       const probe = document.createElement('div');
       probe.style.position = 'fixed';
       probe.style.top = '0';
@@ -57,32 +57,28 @@
       const cssSafeTop = parseFloat(getComputedStyle(probe).height) || 0;
       probe.remove();
 
-      // visualViewport와 비교해서 보정값 계산
-      let extraTop = 0;
-      if (window.visualViewport) {
-        const diff = window.innerHeight - window.visualViewport.height;
-        if (diff > 0) {
-          extraTop = diff;
-        }
-      }
+      // visualViewport 보정
+      const vvH = window.visualViewport ? window.visualViewport.height : 0;
+      const extraTop = window.visualViewport
+        ? Math.max(0, window.innerHeight - window.visualViewport.height)
+        : 0;
 
-      // 둘 중 더 큰 값을 사용
+      // 최종 safe-top
       const safeTop = Math.max(cssSafeTop, extraTop);
-
       doc.style.setProperty('--safe-top', `${safeTop}px`);
 
-      console.log({
-        innerHeight: window.innerHeight,
-        visualViewportHeight: window.visualViewport?.height,
-        cssSafeTop,
-        extraTop,
-        finalSafeTop: safeTop
-      });
+      alert(
+        `[Viewport Debug]\n\n` +
+        `window.innerHeight: ${innerH}px\n` +
+        `visualViewport.height: ${vvH}px\n` +
+        `env(safe-area-inset-top): ${cssSafeTop}px\n` +
+        `innerHeight - visualViewport.height: ${extraTop}px\n` +
+        `최종 safeTop: ${safeTop}px\n\n` +
+        `적용 height: calc(${innerH}px + ${safeTop}px)`
+      );
     }
 
     window.addEventListener('load', setViewportVars);
-    window.addEventListener('resize', setViewportVars);
-    window.addEventListener('orientationchange', setViewportVars);
   </script>
 </body>
 </html>
