@@ -8,6 +8,11 @@
   <title>status bar image test</title>
 
   <style>
+    :root {
+      --safe-top: 0px;
+      --app-height: 100vh;
+    }
+
     html, body {
       margin: 0;
       padding: 0;
@@ -22,13 +27,62 @@
       top: 0;
       left: 0;
       width: 100%;
-      height: calc(100vh + env(safe-area-inset-top));
+      height: calc(var(--app-height) + var(--safe-top));
       object-fit: contain;
       object-position: center top;
+      background: black;
     }
   </style>
 </head>
 <body>
   <img src="/storage/2/df32cd9c526846de992ceb7270961953.png" />
+
+  <script>
+    function setViewportVars() {
+      const doc = document.documentElement;
+
+      // 현재 실제 보이는 높이
+      const vh = window.innerHeight;
+      doc.style.setProperty('--app-height', `${vh}px`);
+
+      // CSS safe-area 값 읽기용 임시 요소
+      const probe = document.createElement('div');
+      probe.style.position = 'fixed';
+      probe.style.top = '0';
+      probe.style.left = '0';
+      probe.style.height = 'env(safe-area-inset-top)';
+      probe.style.visibility = 'hidden';
+      document.body.appendChild(probe);
+
+      const cssSafeTop = parseFloat(getComputedStyle(probe).height) || 0;
+      probe.remove();
+
+      // visualViewport와 비교해서 보정값 계산
+      let extraTop = 0;
+      if (window.visualViewport) {
+        const diff = window.innerHeight - window.visualViewport.height;
+        if (diff > 0) {
+          extraTop = diff;
+        }
+      }
+
+      // 둘 중 더 큰 값을 사용
+      const safeTop = Math.max(cssSafeTop, extraTop);
+
+      doc.style.setProperty('--safe-top', `${safeTop}px`);
+
+      console.log({
+        innerHeight: window.innerHeight,
+        visualViewportHeight: window.visualViewport?.height,
+        cssSafeTop,
+        extraTop,
+        finalSafeTop: safeTop
+      });
+    }
+
+    window.addEventListener('load', setViewportVars);
+    window.addEventListener('resize', setViewportVars);
+    window.addEventListener('orientationchange', setViewportVars);
+  </script>
 </body>
 </html>
