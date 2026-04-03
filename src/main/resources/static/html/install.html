@@ -1,33 +1,44 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <title>status bar image test</title>
+<meta charset="UTF-8" />
+<meta name="viewport"
+	content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style"
+	content="black-translucent" />
+<title>status bar image test</title>
 
-  <style>
-    html, body {
-      margin: 0;
-      padding: 0;
-      width: 100%;
-      height: 100%;
-      overflow: hidden;
-      background: black;
-    }
+<style>
+html, body {
+	margin: 0;
+	padding: 0;
+	width: 100%;
+	height: 100%;
+	overflow: hidden;
+	background: black;
+}
 
-    img {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      object-fit: contain;
-      object-position: center top;
-    }
-  </style>
+body {
+	height: 100dvh;
+	overflow: hidden;
+	overscroll-behavior: none;
+	-webkit-overflow-scrolling: touch;
+	-webkit-font-smoothing: antialiased;
+	-webkit-tap-highlight-color: transparent;
+}
+
+img {
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	object-fit: contain;
+	object-position: center top;
+}
+</style>
 </head>
 <body>
-  <img src="/storage/2/df32cd9c526846de992ceb7270961953.png" />
+	<img src="/storage/2/df32cd9c526846de992ceb7270961953.png" />
 </body>
 </html>
