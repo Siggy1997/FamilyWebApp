@@ -2,7 +2,7 @@
   "name": "memories.",
   "short_name": "memories.",
   "description": "여행 기억",
-  "start_url": "/html/install.html",
+  "start_url": "/html/login.html",
   "display": "fullscreen",
   "background_color": "#f5efe6",
   "theme_color": "#f5efe6",

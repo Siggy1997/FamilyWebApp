@@ -65,6 +65,7 @@ function handleLogin() {
 
 	// 통신
 	API.login.signIn(reqData, (res) => {
+			btn.classList.add('loading');
 		//localStorage에 저장
 		sessionStorage.setItem('id', 			res.id);
 		sessionStorage.setItem('group_id', 		res.group_id);
@@ -86,9 +87,9 @@ function handleLogin() {
 			localStorage.clear();
 		}
 		
-		onLoginSuccess(res.id);
+/*		onLoginSuccess(res.id);*/
 		
-		/*location.replace('/html/index.html');*/
+		location.replace('/html/index.html');
 	});
 	btn.classList.remove('loading');
 	btn.disabled = false;

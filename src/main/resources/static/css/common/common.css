@@ -44,6 +44,9 @@ input, textarea {-webkit-user-select: text;user-select: text;}
 /* ── Reset ── */
 html { overscroll-behavior: none; background: var(--bg); }
 body {
+	  height: 100vh;               /* 뷰포트 높이 */
+	overflow: hidden;
+  background: var(--bg);
 /*   height: 100dvh; overflow: hidden;
   overscroll-behavior: none;
   -webkit-overflow-scrolling: touch;

@@ -641,7 +641,16 @@ body:has(.select-action-bar.show) .scroll-wrap {
   transition: opacity .25s ease;
 } */
 .photo-viewer {
-  position: fixed;
+	margin: 0;
+	padding: 0;
+	z-index: -1;
+	background: #000;
+  display: flex;
+  flex-direction: column;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .25s ease;
+/*   position: fixed;
   top: 0; left: 0; right: 0;
   bottom: 0;
   margin-top: calc(-1 * env(safe-area-inset-top, 0px));
@@ -652,7 +661,7 @@ body:has(.select-action-bar.show) .scroll-wrap {
   flex-direction: column;
   opacity: 0;
   pointer-events: none;
-  transition: opacity .25s ease;
+  transition: opacity .25s ease; */
 }
 .photo-viewer.open {
   z-index: 100;
@@ -708,6 +717,7 @@ height: 100%;
   width: 100%;
   min-height: 0;
   padding-bottom: 0 !important;
+  background: black
 }
 .pv-swiper .swiper-wrapper { align-items: center; }
  
@@ -721,15 +731,23 @@ height: 100%;
   overflow: hidden;
 }
 .pv-slide img {
+		  width: 100vw;                /* 뷰포트 너비 */
+  height: 100vh;               /* 뷰포트 높이 */
+  object-fit: cover;           /* 비율 유지하며 꽉 채우기 */
+  position: absolute;
+  top:0;
+  bottom: 0;
+  left: 0; 
+  /* 
   max-width: 100%;
   max-height: 100%;
   object-fit: contain;
   user-select: none;
   -webkit-user-drag: none;
-  /* 핀치-줌 지원 */
+  핀치-줌 지원
   touch-action: pan-y pinch-zoom;
   border-radius: 0;
-  display: block;
+  display: block; */
   /* 로드 전 페이드 */
   opacity: 0;
   transition: opacity .3s ease;
